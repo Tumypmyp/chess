@@ -9,11 +9,11 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-var games map[int64]*Game
-
 var ctx = context.Background()
 
-var db Memory
+var games Memory
+
+var gameId int64
 
 func main() {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
@@ -29,9 +29,7 @@ func main() {
 
 	updates := bot.GetUpdatesChan(updateConfig)
 
-	games = make(map[int64]*Game)
-
-	db = NewDataBase()
+	games = NewDataBase()
 
 	if err != nil {
 		panic(err)
@@ -41,24 +39,28 @@ func main() {
 		if update.Message == nil {
 			continue
 		}
+		if update.Message.Text == "/new_game" {
+			gameId++
+		}
 		reply(update.Message, bot)
+
 	}
 
 }
 
 func reply(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
-	key := strconv.FormatInt(message.Chat.ID, 10)
+	key := strconv.FormatInt(gameId, 10)
 	var game Game
-	if err := db.Get(key, &game); err != nil {
+	if err := games.Get(key, &game); err != nil {
 		game = Game{}
 	}
 
 	game.Move(message.Text)
 
-	msg := tgbotapi.NewMessage(message.Chat.ID, game.Render())
+	msg := tgbotapi.NewMessage(message.Chat.ID, game.String())
 	msg.ReplyToMessageID = message.MessageID
 
-	if err := db.Set(key, game); err != nil {
+	if err := games.Set(key, game); err != nil {
 		log.Printf("% v, could not send message", err)
 	}
 

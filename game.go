@@ -27,7 +27,7 @@ type Game struct {
 	Board [3][3]Mark `json:"board"`
 }
 
-func (g *Game) Render() (s string) {
+func (g *Game) String() (s string) {
 	for _, row := range g.Board {
 		for _, val := range row {
 			s += val.String()
