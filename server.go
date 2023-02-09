@@ -4,16 +4,17 @@ import (
 	"context"
 	"log"
 	"os"
-	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-var ctx = context.Background()
-
+var bot *tgbotapi.BotAPI
 var games Memory
 
-var gameID int64
+var gameID int64 = 50
+
+var ctx = context.Background()
+var player Player
 
 func main() {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
@@ -24,8 +25,8 @@ func main() {
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	updateConfig := tgbotapi.NewUpdate(0)
-	updateConfig.Timeout = 30
+	updateConfig := tgbotapi.NewUpdate(10)
+	updateConfig.Timeout = 20
 
 	updates := bot.GetUpdatesChan(updateConfig)
 
@@ -34,46 +35,40 @@ func main() {
 		panic(err)
 	}
 
-	err = games.Get("gameID", gameID)
-	if err != nil {
-		log.Printf("could not restore, gameID = %v", gameID)
-	}
-
 	for update := range updates {
 		if update.Message == nil {
 			continue
 		}
-		if update.Message.Text == "/new_game" {
-			gameID++
-			games.Set("gameID", gameID)
+		/*
+			player.ChatID = update.Message.Chat.ID
+			if update.Message.Text == "/new_game" {
+				err := games.Get("gameID", gameID)
+				if err != nil {
+					log.Printf("could not restore, gameID = %v", gameID)
+				}
+				player.NewGame()
+				games.Set("gameID", gameID)
+			}*/
+		reply(update.Message)
+	}
+
+}
+
+func reply(message *tgbotapi.Message) {
+	/*	if player.CurrentGame() == nil {
+			player.NewGame()
 		}
-		reply(update.Message, bot)
-	}
+		game := player.CurrentGame()
+		log.Printf("player %+v", player)
+		game.Move(message.Text)
 
-}
+		log.Printf("moved")
+		if err := games.Set(game.ID, game); err != nil {
+			log.Printf("% v, could not set game", err)
+		}
+		//player.SendStatus()
+	//*/
+	msg := tgbotapi.NewMessage(message.Chat.ID, message.Text)
 
-func sendStatus(game *Game, bot *tgbotapi.BotAPI) {
-	msg := tgbotapi.NewMessage(game.ChatID, game.String())
-
-	if _, err := bot.Send(msg); err != nil {
-		panic(err)
-	}
-}
-
-func reply(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
-	log.Println(gameID)
-	key := strconv.FormatInt(gameID, 10)
-	var game Game
-	if err := games.Get(key, &game); err != nil {
-		game = Game{ChatID: message.Chat.ID}
-	}
-
-	log.Printf("game %v", game)
-	game.Move(message.Text)
-
-	if err := games.Set(key, game); err != nil {
-		log.Printf("% v, could not set game", err)
-	}
-	sendStatus(&game, bot)
-
+	bot.Send(msg)
 }

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
+	"log"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -22,7 +22,7 @@ func NewDatabase() (Database, error) {
 		Password: "",
 		DB:       0,
 	})}
-	_, err := db.client.Ping(context.Background()).Result()
+	_, err := db.client.Ping(ctx).Result()
 	return db, err
 
 }
@@ -31,6 +31,7 @@ func (db Database) Set(key string, value interface{}) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("%v.set %v, %v, %v", db, ctx, key, p)
 	_, err = db.client.Set(ctx, key, p, 0).Result()
 	return err
 }

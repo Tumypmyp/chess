@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"log"
+	"strconv"
 )
 
 type Mark int
@@ -24,8 +25,17 @@ func (m Mark) String() string {
 }
 
 type Game struct {
-	ChatID int64
+	player *Player
 	Board  [3][3]Mark `json:"board"`
+	ID     string
+}
+
+func NewGame(p *Player) *Game {
+	gameID++
+	return &Game{
+		player: p,
+		ID:     strconv.FormatInt(gameID, 10),
+	}
 }
 
 func (g *Game) String() (s string) {
@@ -55,7 +65,6 @@ func (g *Game) Move(move string) {
 	}
 	x := int(move[0] - '0')
 	y := int(move[1] - '0')
-	log.Print(x, y)
 	if err := g.move(x, y); err != nil {
 		log.Printf("bad move: %v", err)
 	}

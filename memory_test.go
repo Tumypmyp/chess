@@ -5,7 +5,7 @@ import (
 )
 
 func TestHelloWorld(t *testing.T) {
-	t.Run("send, recieve", func(t *testing.T) {
+	t.Run("set and ", func(t *testing.T) {
 		/*
 			t.Log("base adding")
 			memory := NewDatabase()
