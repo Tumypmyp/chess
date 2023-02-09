@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/redis/go-redis/v9"
@@ -8,21 +9,24 @@ import (
 
 type Memory interface {
 	Get(key string, dest interface{}) error
-	Set(key string, dest interface{}) error
+	Set(key string, value interface{}) error
 }
 
-type DataBase struct {
+type Database struct {
 	client *redis.Client
 }
 
-func NewDataBase() DataBase {
-	return DataBase{redis.NewClient(&redis.Options{
+func NewDatabase() (Database, error) {
+	db := Database{redis.NewClient(&redis.Options{
 		Addr:     "redis:6379",
 		Password: "",
 		DB:       0,
 	})}
+	_, err := db.client.Ping(context.Background()).Result()
+	return db, err
+
 }
-func (db DataBase) Set(key string, value interface{}) error {
+func (db Database) Set(key string, value interface{}) error {
 	p, err := json.Marshal(value)
 	if err != nil {
 		return err
@@ -31,7 +35,7 @@ func (db DataBase) Set(key string, value interface{}) error {
 	return err
 }
 
-func (db DataBase) Get(key string, dest interface{}) error {
+func (db Database) Get(key string, dest interface{}) error {
 	get := db.client.Get(ctx, key)
 	value, err := get.Bytes()
 	if err != nil {

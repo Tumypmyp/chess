@@ -13,7 +13,7 @@ var ctx = context.Background()
 
 var games Memory
 
-var gameId int64
+var gameID int64
 
 func main() {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
@@ -29,10 +29,14 @@ func main() {
 
 	updates := bot.GetUpdatesChan(updateConfig)
 
-	games = NewDataBase()
-
+	games, err = NewDatabase()
 	if err != nil {
 		panic(err)
+	}
+
+	err = games.Get("gameID", gameID)
+	if err != nil {
+		log.Printf("could not restore, gameID = %v", gameID)
 	}
 
 	for update := range updates {
@@ -40,32 +44,36 @@ func main() {
 			continue
 		}
 		if update.Message.Text == "/new_game" {
-			gameId++
+			gameID++
+			games.Set("gameID", gameID)
 		}
 		reply(update.Message, bot)
-
 	}
 
 }
 
-func reply(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
-	key := strconv.FormatInt(gameId, 10)
-	var game Game
-	if err := games.Get(key, &game); err != nil {
-		game = Game{}
-	}
-
-	game.Move(message.Text)
-
-	msg := tgbotapi.NewMessage(message.Chat.ID, game.String())
-	msg.ReplyToMessageID = message.MessageID
-
-	if err := games.Set(key, game); err != nil {
-		log.Printf("% v, could not send message", err)
-	}
+func sendStatus(game *Game, bot *tgbotapi.BotAPI) {
+	msg := tgbotapi.NewMessage(game.ChatID, game.String())
 
 	if _, err := bot.Send(msg); err != nil {
 		panic(err)
 	}
+}
+
+func reply(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+	log.Println(gameID)
+	key := strconv.FormatInt(gameID, 10)
+	var game Game
+	if err := games.Get(key, &game); err != nil {
+		game = Game{ChatID: message.Chat.ID}
+	}
+
+	log.Printf("game %v", game)
+	game.Move(message.Text)
+
+	if err := games.Set(key, game); err != nil {
+		log.Printf("% v, could not set game", err)
+	}
+	sendStatus(&game, bot)
 
 }

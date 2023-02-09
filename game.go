@@ -24,7 +24,8 @@ func (m Mark) String() string {
 }
 
 type Game struct {
-	Board [3][3]Mark `json:"board"`
+	ChatID int64
+	Board  [3][3]Mark `json:"board"`
 }
 
 func (g *Game) String() (s string) {
