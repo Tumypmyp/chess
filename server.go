@@ -40,6 +40,7 @@ func main() {
 		switch update.Message.Text {
 		case "/new_game":
 			player.NewGame()
+			player.SendStatus(bot)
 		default:
 			move(player, update.Message, bot)
 		}

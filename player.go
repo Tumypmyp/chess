@@ -22,7 +22,7 @@ func NewPlayer(db Memory, ChatID int64) Player {
 }
 func (p *Player) CurrentGame() (*Game, error) {
 	if p.currentGame == nil {
-		return nil, errors.New("no current game")
+		return nil, errors.New("no current game, try: /new_game")
 	}
 	return p.currentGame, nil
 }

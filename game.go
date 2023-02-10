@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 )
 
@@ -46,12 +47,18 @@ func (g *Game) String() (s string) {
 	return
 }
 
-func (g *Game) move(x, y int) error {
+func (g *Game) legalMove(x, y int) (bool, error) {
 	if x < 0 || len(g.Board) <= x {
-		return errors.New("x coordinate out of bounds")
+		return false, errors.New("x coordinate out of bounds")
 	}
 	if y < 0 || len(g.Board[x]) <= y {
-		return errors.New("y coordinate out of bounds")
+		return false, errors.New("y coordinate out of bounds")
+	}
+	return true, nil
+}
+func (g *Game) move(x, y int) error {
+	if _, err := g.legalMove(x, y); err != nil {
+		return err
 	}
 	g.Board[x][y] = First
 	return nil
@@ -64,7 +71,7 @@ func (g *Game) Move(move string) error {
 	x := int(move[0] - '0')
 	y := int(move[1] - '0')
 	if err := g.move(x, y); err != nil {
-		return errors.New("bad move: " + err.Error())
+		return fmt.Errorf("illegal move: %w", err)
 	}
 	return nil
 
