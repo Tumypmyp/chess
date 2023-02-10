@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -56,8 +57,7 @@ func (p *Player) Move(move string) error {
 		return err
 	}
 	if err := p.DB.Set(game.ID, game); err != nil {
-		log.Printf("% v, could reach db", err)
-		return err
+		return fmt.Errorf("could not reach db: %w", err)
 	}
 	p.SendStatus()
 	return nil
