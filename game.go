@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"log"
 	"strconv"
 )
 
@@ -58,14 +57,15 @@ func (g *Game) move(x, y int) error {
 	return nil
 }
 
-func (g *Game) Move(move string) {
+func (g *Game) Move(move string) error {
 	if len(move) != 2 {
-		return
+		return errors.New("need 2 characters (example: 22)")
 	}
 	x := int(move[0] - '0')
 	y := int(move[1] - '0')
 	if err := g.move(x, y); err != nil {
-		log.Printf("bad move: %v", err)
+		return errors.New("bad move: " + err.Error())
 	}
+	return nil
 
 }

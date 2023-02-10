@@ -9,7 +9,6 @@ import (
 )
 
 var ctx = context.Background()
-var player Player
 
 func main() {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
@@ -30,28 +29,27 @@ func main() {
 		panic(err)
 	}
 
-	player = NewPlayer(games, 0)
+	player := NewPlayer(games, 0)
 	for update := range updates {
 		if update.Message == nil {
 			continue
 		}
 
 		player.ChatID = update.Message.Chat.ID
-		if update.Message.Text == "/new_game" {
-			player.NewGame()
-		}
 
-		reply(update.Message, bot)
+		switch update.Message.Text {
+		case "/new_game":
+			player.NewGame()
+		default:
+			move(player, update.Message, bot)
+		}
 	}
 
 }
 
-func reply(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
-
-	if player.CurrentGame() == nil {
-		log.Printf("No current games")
-		player.NewGame()
+func move(player Player, message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+	err := player.Move(message.Text, bot)
+	if err != nil {
+		player.Send(bot, err.Error())
 	}
-	player.Move(message.Text)
-	player.SendStatus(bot)
 }
