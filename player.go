@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -20,7 +21,7 @@ func (p *Player) NewGame() {
 	p.gamesID = append(p.gamesID, p.currentGame.ID)
 }
 
-func (p *Player) SendStatus() {
+func (p *Player) SendStatus(bot *tgbotapi.BotAPI) {
 	text := p.currentGame.String()
 	msg := tgbotapi.NewMessage(p.ChatID, text)
 

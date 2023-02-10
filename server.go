@@ -8,7 +8,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-var bot *tgbotapi.BotAPI
 var games Memory
 
 var gameID int64 = 50
@@ -39,36 +38,38 @@ func main() {
 		if update.Message == nil {
 			continue
 		}
-		/*
-			player.ChatID = update.Message.Chat.ID
-			if update.Message.Text == "/new_game" {
-				err := games.Get("gameID", gameID)
-				if err != nil {
-					log.Printf("could not restore, gameID = %v", gameID)
-				}
-				player.NewGame()
-				games.Set("gameID", gameID)
-			}*/
-		reply(update.Message)
+
+		player.ChatID = update.Message.Chat.ID
+		if update.Message.Text == "/new_game" {
+			err := games.Get("gameID", gameID)
+			if err != nil {
+				log.Printf("could not restore, gameID = %v", gameID)
+			}
+			player.NewGame()
+			games.Set("gameID", gameID)
+		}
+
+		reply(update.Message, bot)
+
 	}
 
 }
 
-func reply(message *tgbotapi.Message) {
-	/*	if player.CurrentGame() == nil {
-			player.NewGame()
-		}
-		game := player.CurrentGame()
-		log.Printf("player %+v", player)
-		game.Move(message.Text)
 
-		log.Printf("moved")
-		if err := games.Set(game.ID, game); err != nil {
-			log.Printf("% v, could not set game", err)
-		}
-		//player.SendStatus()
-	//*/
-	msg := tgbotapi.NewMessage(message.Chat.ID, message.Text)
+func reply(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
+
+	if player.CurrentGame() == nil {
+		player.NewGame()
+	}
+	game := player.CurrentGame()
+	log.Printf("player %+v", player)
+	game.Move(message.Text)
+	log.Printf("moved")
+	if err := games.Set(game.ID, game); err != nil {
+		log.Printf("% v, could not set game", err)
+	}
+
+	player.SendStatus(bot)
 
 	bot.Send(msg)
 }
