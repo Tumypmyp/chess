@@ -12,6 +12,15 @@ type Player struct {
 	gamesID     []string
 	ChatID      int64
 	DB          Memory
+	bot         *tgbotapi.BotAPI
+}
+
+func NewPlayerWithBot(db Memory, ChatID int64, bot *tgbotapi.BotAPI) Player {
+	return Player{
+		DB:     db,
+		ChatID: ChatID,
+		bot:    bot,
+	}
 }
 
 func NewPlayer(db Memory, ChatID int64) Player {
@@ -38,7 +47,7 @@ func (p *Player) NewGame() {
 	p.gamesID = append(p.gamesID, p.currentGame.ID)
 }
 
-func (p *Player) Move(move string, bot *tgbotapi.BotAPI) error {
+func (p *Player) Move(move string) error {
 	game, err := p.CurrentGame()
 	if err != nil {
 		return err
@@ -50,23 +59,23 @@ func (p *Player) Move(move string, bot *tgbotapi.BotAPI) error {
 		log.Printf("% v, could reach db", err)
 		return err
 	}
-	p.SendStatus(bot)
+	p.SendStatus()
 	return nil
 }
-func (p *Player) Send(bot *tgbotapi.BotAPI, text string) {
+func (p *Player) Send(text string) {
 	msg := tgbotapi.NewMessage(p.ChatID, text)
 
 	log.Printf("%+v\n%v\n", p, msg)
-	if _, err := bot.Send(msg); err != nil {
+	if _, err := p.bot.Send(msg); err != nil {
 		log.Fatalf("cant send: %v", err)
 	}
 }
 
-func (p *Player) SendStatus(bot *tgbotapi.BotAPI) {
+func (p *Player) SendStatus() {
 	game, err := p.CurrentGame()
 	if err != nil {
-		p.Send(bot, err.Error())
+		p.Send(err.Error())
 		return
 	}
-	p.Send(bot, game.String())
+	p.Send(game.String())
 }

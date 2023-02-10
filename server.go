@@ -29,7 +29,7 @@ func main() {
 		panic(err)
 	}
 
-	player := NewPlayer(games, 0)
+	player := NewPlayerWithBot(games, 0, bot)
 	for update := range updates {
 		if update.Message == nil {
 			continue
@@ -40,17 +40,17 @@ func main() {
 		switch update.Message.Text {
 		case "/new_game":
 			player.NewGame()
-			player.SendStatus(bot)
+			player.SendStatus()
 		default:
-			move(player, update.Message, bot)
+			move(player, update.Message)
 		}
 	}
 
 }
 
-func move(player Player, message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
-	err := player.Move(message.Text, bot)
+func move(player Player, message *tgbotapi.Message) {
+	err := player.Move(message.Text)
 	if err != nil {
-		player.Send(bot, err.Error())
+		player.Send(err.Error())
 	}
 }
