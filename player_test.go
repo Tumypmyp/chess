@@ -7,12 +7,11 @@ import (
 
 func TestPlayer(t *testing.T) {
 	t.Run("move player", func(t *testing.T) {
-		games := NewStubDatabase()
 		t.Log("test start")
-		p := Player{ChatID: 123}
+		p := NewPlayer(NewStubDatabase(), 123)
 
 		t.Log(p)
-		p.NewGame(games)
+		p.NewGame()
 		t.Log(p)
 		if p.CurrentGame() == nil {
 			t.Fatalf("got no current game")
@@ -27,9 +26,8 @@ func TestPlayer(t *testing.T) {
 	})
 	t.Run("new game", func(t *testing.T) {
 
-		games := NewStubDatabase()
-		p := Player{ChatID: 123}
-		p.NewGame(games)
+		p := NewPlayer(NewStubDatabase(), 123)
+		p.NewGame()
 		p.CurrentGame().Move("02")
 		got := p.CurrentGame().Board
 		want := [3][3]Mark{{0, 0, 1}, {0, 0, 0}, {0, 0, 0}}
@@ -37,7 +35,7 @@ func TestPlayer(t *testing.T) {
 		if !reflect.DeepEqual(got, want) {
 			t.Fatalf("got %v, want %v", got, want)
 		}
-		p.NewGame(games)
+		p.NewGame()
 
 		got = p.CurrentGame().Board
 		want = [3][3]Mark{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
@@ -46,5 +44,23 @@ func TestPlayer(t *testing.T) {
 			t.Fatalf("got %v, want %v", got, want)
 		}
 	})
+	t.Run("new game is next id", func(t *testing.T) {
+		db := NewStubDatabase()
+		db.Set("gameID", 10)
 
+		p := NewPlayer(db, 123)
+
+		p.NewGame()
+		AssertString(t, p.CurrentGame().ID, "10")
+
+		p.NewGame()
+		AssertString(t, p.CurrentGame().ID, "11")
+	})
+}
+
+func AssertString(t testing.TB, got, want string) {
+	t.Helper()
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
+	}
 }

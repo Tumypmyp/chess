@@ -30,11 +30,10 @@ type Game struct {
 	ID     string
 }
 
-func NewGame(p *Player) *Game {
-	gameID++
+func NewGame(p *Player, ID int64) *Game {
 	return &Game{
 		Player: p,
-		ID:     strconv.FormatInt(gameID, 10),
+		ID:     strconv.FormatInt(ID, 10),
 	}
 }
 

@@ -8,10 +8,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-var games Memory
-
-var gameID int64 = 50
-
 var ctx = context.Background()
 var player Player
 
@@ -29,11 +25,12 @@ func main() {
 
 	updates := bot.GetUpdatesChan(updateConfig)
 
-	games, err = NewDatabase()
+	games, err := NewDatabase()
 	if err != nil {
 		panic(err)
 	}
 
+	player = NewPlayer(games, 0)
 	for update := range updates {
 		if update.Message == nil {
 			continue
@@ -41,11 +38,10 @@ func main() {
 
 		player.ChatID = update.Message.Chat.ID
 		if update.Message.Text == "/new_game" {
-			player.NewGame(games)
+			player.NewGame()
 		}
 
 		reply(update.Message, bot)
-
 	}
 
 }
@@ -53,15 +49,9 @@ func main() {
 func reply(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 
 	if player.CurrentGame() == nil {
-		player.NewGame(games)
+		log.Printf("No current games")
+		player.NewGame()
 	}
-	game := player.CurrentGame()
-	game.Move(message.Text)
-	log.Printf("moved")
-	if err := games.Set(game.ID, game); err != nil {
-		log.Printf("% v, could not set game", err)
-	}
-
+	player.Move(message.Text)
 	player.SendStatus(bot)
-
 }

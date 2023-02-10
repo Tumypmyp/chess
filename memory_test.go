@@ -50,17 +50,20 @@ func deepCopy(a, b interface{}) {
 	json.Unmarshal(byt, b)
 }
 
-type StubDatabase map[string]interface{}
+type StubDatabase struct {
+	DB *map[string]interface{}
+}
 
 func NewStubDatabase() StubDatabase {
-	return make(map[string]interface{})
+	db := make(map[string]interface{})
+	return StubDatabase{DB: &db}
 }
 
 func (s StubDatabase) Get(key string, dest interface{}) error {
-	deepCopy(s[key], dest)
+	deepCopy((*s.DB)[key], dest)
 	return nil
 }
 func (s StubDatabase) Set(key string, value interface{}) error {
-	s[key] = value
+	(*s.DB)[key] = value
 	return nil
 }
