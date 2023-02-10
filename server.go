@@ -55,7 +55,6 @@ func main() {
 
 }
 
-
 func reply(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 
 	if player.CurrentGame() == nil {
@@ -71,5 +70,4 @@ func reply(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 
 	player.SendStatus(bot)
 
-	bot.Send(msg)
 }
