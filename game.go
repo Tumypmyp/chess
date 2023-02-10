@@ -9,7 +9,7 @@ import (
 type Mark int
 
 const (
-	Undefined Mark = iota
+	UndefinedMark = iota
 	First
 	Second
 )
@@ -53,6 +53,9 @@ func (g *Game) legalMove(x, y int) (bool, error) {
 	}
 	if y < 0 || len(g.Board[x]) <= y {
 		return false, errors.New("y coordinate out of bounds")
+	}
+	if g.Board[x][y] != UndefinedMark {
+		return false, errors.New("this place is not empty")
 	}
 	return true, nil
 }
