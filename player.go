@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -16,8 +15,13 @@ type Player struct {
 func (p *Player) CurrentGame() *Game {
 	return p.currentGame
 }
-func (p *Player) NewGame() {
+func (p *Player) NewGame(games Memory) {
+	err := games.Get("gameID", gameID)
+	if err != nil {
+		log.Printf("could not restore, gameID = %v", gameID)
+	}
 	p.currentGame = NewGame(p)
+	games.Set("gameID", gameID)
 	p.gamesID = append(p.gamesID, p.currentGame.ID)
 }
 

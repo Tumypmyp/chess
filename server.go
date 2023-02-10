@@ -24,8 +24,8 @@ func main() {
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	updateConfig := tgbotapi.NewUpdate(10)
-	updateConfig.Timeout = 20
+	updateConfig := tgbotapi.NewUpdate(0)
+	updateConfig.Timeout = 30
 
 	updates := bot.GetUpdatesChan(updateConfig)
 
@@ -41,12 +41,7 @@ func main() {
 
 		player.ChatID = update.Message.Chat.ID
 		if update.Message.Text == "/new_game" {
-			err := games.Get("gameID", gameID)
-			if err != nil {
-				log.Printf("could not restore, gameID = %v", gameID)
-			}
-			player.NewGame()
-			games.Set("gameID", gameID)
+			player.NewGame(games)
 		}
 
 		reply(update.Message, bot)
@@ -58,10 +53,9 @@ func main() {
 func reply(message *tgbotapi.Message, bot *tgbotapi.BotAPI) {
 
 	if player.CurrentGame() == nil {
-		player.NewGame()
+		player.NewGame(games)
 	}
 	game := player.CurrentGame()
-	log.Printf("player %+v", player)
 	game.Move(message.Text)
 	log.Printf("moved")
 	if err := games.Set(game.ID, game); err != nil {

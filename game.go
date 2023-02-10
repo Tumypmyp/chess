@@ -25,9 +25,7 @@ func (m Mark) String() string {
 }
 
 type Game struct {
-
 	Player *Player
-
 	Board  [3][3]Mark `json:"board"`
 	ID     string
 }
@@ -35,9 +33,7 @@ type Game struct {
 func NewGame(p *Player) *Game {
 	gameID++
 	return &Game{
-
 		Player: p,
-
 		ID:     strconv.FormatInt(gameID, 10),
 	}
 }
