@@ -36,21 +36,17 @@ func main() {
 		}
 
 		player.ChatID = update.Message.Chat.ID
+		var err error
 
 		switch update.Message.Text {
 		case "/new_game":
-			player.NewGame()
-			player.SendStatus()
+			player.NewGame().SendStatus()
 		default:
-			move(player, update.Message)
+			err = player.Move(update.Message.Text)
+		}
+		if err != nil {
+			player.Send(err.Error())
 		}
 	}
 
-}
-
-func move(player Player, message *tgbotapi.Message) {
-	err := player.Move(message.Text)
-	if err != nil {
-		player.Send(err.Error())
-	}
 }

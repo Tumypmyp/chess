@@ -30,11 +30,15 @@ type Game struct {
 	ID      string     `json:"ID:`
 }
 
-func NewGame(ID int64, p ...*Player) *Game {
-	return &Game{
-		Players: p,
+func NewGame(ID int64, players ...*Player) *Game {
+	game := &Game{
+		Players: players,
 		ID:      strconv.FormatInt(ID, 10),
 	}
+	for _, p := range players {
+		p.SetNewGame(game)
+	}
+	return game
 }
 
 func (g *Game) String() (s string) {
@@ -60,16 +64,19 @@ func (g *Game) legalMove(x, y int) (bool, error) {
 	return true, nil
 }
 
-func (g *Game) Move(player *Player, move string) error {
-	var id int = -1
+func (g *Game) findPlayer(player *Player) (int, error) {
 	for i, p := range g.Players {
-		if p == player {
-			id = i
-			break
+		if p.ChatID == player.ChatID {
+			return i, nil
 		}
 	}
-	if id == -1 {
-		return errors.New("player doesnt play this game")
+	return -1, errors.New("player doesnt play this game")
+}
+
+func (g *Game) Move(player *Player, move string) error {
+	id, err := g.findPlayer(player)
+	if err != nil {
+		return err
 	}
 
 	if len(move) != 2 {
@@ -82,4 +89,9 @@ func (g *Game) Move(player *Player, move string) error {
 	}
 	g.Board[x][y] = Mark(id + 1)
 	return nil
+}
+func (g *Game) SendStatus() {
+	for _, p := range g.Players {
+		p.Send(g.String())
+	}
 }

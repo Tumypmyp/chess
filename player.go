@@ -8,25 +8,29 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+type Sender interface {
+	Send(tgbotapi.Chattable) (tgbotapi.Message, error)
+}
+
 type Player struct {
 	currentGame *Game
 	gamesID     []string
 	ChatID      int64
 	DB          Memory
-	bot         *tgbotapi.BotAPI
+	bot         Sender
 }
 
-func NewPlayerWithBot(db Memory, ChatID int64, bot *tgbotapi.BotAPI) Player {
+func NewPlayerWithBot(db Map, ChatID int64, bot Sender) Player {
 	return Player{
-		DB:     db,
+		DB:     Memory{db},
 		ChatID: ChatID,
 		bot:    bot,
 	}
 }
 
-func NewPlayer(db Memory, ChatID int64) Player {
+func NewPlayer(db Map, ChatID int64) Player {
 	return Player{
-		DB:     db,
+		DB:     Memory{db},
 		ChatID: ChatID,
 	}
 }
@@ -37,21 +41,18 @@ func (p *Player) CurrentGame() (*Game, error) {
 	return p.currentGame, nil
 }
 
-// make 2 functions
-func (p *Player) NewGame(other ...*Player) {
-	var gameID int64
-	err := p.DB.Get("gameID", &gameID)
+func (p *Player) SetNewGame(game *Game) {
+	p.currentGame = game
+	p.gamesID = append(p.gamesID, p.currentGame.ID)
+}
+
+func (p *Player) NewGame(other ...*Player) *Game {
+	gameID, err := p.DB.incr("gameID")
 	if err != nil {
-		log.Printf("could not restore, gameID = %v", gameID)
+		log.Printf("%v", err)
 	}
 	other = append([]*Player{p}, other...)
-	game := NewGame(gameID, other...)
-	for _, player := range other {
-		player.currentGame = game
-	}
-	gameID++
-	p.DB.Set("gameID", gameID)
-	p.gamesID = append(p.gamesID, p.currentGame.ID)
+	return NewGame(gameID, other...)
 }
 
 func (p *Player) Move(move string) error {
@@ -65,26 +66,17 @@ func (p *Player) Move(move string) error {
 	if err := p.DB.Set(game.ID, game); err != nil {
 		return fmt.Errorf("could not reach db: %w", err)
 	}
-	p.SendStatus()
+	game.SendStatus()
 	return nil
 }
+
 func (p *Player) Send(text string) {
 	msg := tgbotapi.NewMessage(p.ChatID, text)
-
 	if p.bot == nil {
 		return
 	}
-	log.Printf("%+v\n%v\n", p, msg)
+
 	if _, err := p.bot.Send(msg); err != nil {
 		log.Printf("cant send: %v", err)
 	}
-}
-
-func (p *Player) SendStatus() {
-	game, err := p.CurrentGame()
-	if err != nil {
-		p.Send(err.Error())
-		return
-	}
-	p.Send(game.String())
 }
