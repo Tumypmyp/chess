@@ -2,46 +2,18 @@ package main
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
 )
-
-func TestHelloWorld(t *testing.T) {
-	t.Run("set and ", func(t *testing.T) {
-		/*
-			t.Log("base adding")
-			memory := NewDatabase()
-
-			t.Log("base added")
-			err := memory.Set("test", "value")
-			if err != nil {
-				t.Fatalf("cant set %v", err)
-			}
-			var got string
-			err = memory.Get("test", &got)
-			if err != nil {
-				t.Fatalf("cant get %v", err)
-			}
-			want := "value"
-			if !reflect.DeepEqual(got, want) {
-				t.Fatalf("got %v, want %v", got, want)
-			}
-		*/
-	})
-
-}
 
 func TestStubDatabase(t *testing.T) {
 	memory := NewStubDatabase()
 	key := "abcd"
-	memory.Set(key, "value")
-	t.Log(memory)
+	value := "val"
+	memory.Set(key, value)
+
 	var got string
 	memory.Get(key, &got)
-	want := "value"
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("got %+v, want %+v", got, want)
-	}
+	AssertString(t, got, value)
 
 }
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -10,12 +9,11 @@ func TestGame(t *testing.T) {
 		player := NewPlayer(nil, 12)
 		game := NewGame(12, &player)
 		game.Move(&player, "00")
+
 		want := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
-		if !reflect.DeepEqual(game.Board, want) {
-			t.Fatalf("wanted %v, got %v", want, game.Board)
-		}
+		AssertBoard(t, game.Board, want)
 	})
-	t.Run("new game", func(t *testing.T) {
+	t.Run("2 players", func(t *testing.T) {
 		db := NewStubDatabase()
 		p1 := NewPlayer(db, 12)
 		p2 := NewPlayer(db, 13)
@@ -24,21 +22,17 @@ func TestGame(t *testing.T) {
 		game, err := p1.CurrentGame()
 		AssertNoError(t, err)
 
-		err = p1.Move("00")
+		err = game.Move(&p1, "00")
 		AssertNoError(t, err)
 
 		want := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
-		if !reflect.DeepEqual(game.Board, want) {
-			t.Fatalf("wanted %v, got %v", want, game.Board)
-		}
+		AssertBoard(t, game.Board, want)
 
-		err = p2.Move("01")
+		err = game.Move(&p2, "01")
 		AssertNoError(t, err)
 
 		want = [3][3]Mark{{1, 2, 0}, {0, 0, 0}, {0, 0, 0}}
-		if !reflect.DeepEqual(game.Board, want) {
-			t.Fatalf("wanted %v, got %v", want, game.Board)
-		}
+		AssertBoard(t, game.Board, want)
 
 	})
 }

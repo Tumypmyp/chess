@@ -42,6 +42,5 @@ func (db Database) Get(key string, dest interface{}) error {
 	if err != nil {
 		return err
 	}
-
 	return json.Unmarshal(value, dest)
 }
