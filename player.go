@@ -36,13 +36,19 @@ func (p *Player) CurrentGame() (*Game, error) {
 	}
 	return p.currentGame, nil
 }
-func (p *Player) NewGame() {
+
+// make 2 functions
+func (p *Player) NewGame(other ...*Player) {
 	var gameID int64
 	err := p.DB.Get("gameID", &gameID)
 	if err != nil {
 		log.Printf("could not restore, gameID = %v", gameID)
 	}
-	p.currentGame = NewGame(p, gameID)
+	other = append([]*Player{p}, other...)
+	game := NewGame(gameID, other...)
+	for _, player := range other {
+		player.currentGame = game
+	}
 	gameID++
 	p.DB.Set("gameID", gameID)
 	p.gamesID = append(p.gamesID, p.currentGame.ID)
@@ -53,7 +59,7 @@ func (p *Player) Move(move string) error {
 	if err != nil {
 		return err
 	}
-	if err = game.Move(move); err != nil {
+	if err = game.Move(p, move); err != nil {
 		return err
 	}
 	if err := p.DB.Set(game.ID, game); err != nil {
@@ -65,9 +71,12 @@ func (p *Player) Move(move string) error {
 func (p *Player) Send(text string) {
 	msg := tgbotapi.NewMessage(p.ChatID, text)
 
+	if p.bot == nil {
+		return
+	}
 	log.Printf("%+v\n%v\n", p, msg)
 	if _, err := p.bot.Send(msg); err != nil {
-		log.Fatalf("cant send: %v", err)
+		log.Printf("cant send: %v", err)
 	}
 }
 

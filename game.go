@@ -25,15 +25,15 @@ func (m Mark) String() string {
 }
 
 type Game struct {
-	Player *Player    `json:"player"`
-	Board  [3][3]Mark `json:"board"`
-	ID     string     `json:"ID:`
+	Players []*Player  `json:"player"`
+	Board   [3][3]Mark `json:"board"`
+	ID      string     `json:"ID:`
 }
 
-func NewGame(p *Player, ID int64) *Game {
+func NewGame(ID int64, p ...*Player) *Game {
 	return &Game{
-		Player: p,
-		ID:     strconv.FormatInt(ID, 10),
+		Players: p,
+		ID:      strconv.FormatInt(ID, 10),
 	}
 }
 
@@ -60,7 +60,18 @@ func (g *Game) legalMove(x, y int) (bool, error) {
 	return true, nil
 }
 
-func (g *Game) Move(move string) error {
+func (g *Game) Move(player *Player, move string) error {
+	var id int = -1
+	for i, p := range g.Players {
+		if p == player {
+			id = i
+			break
+		}
+	}
+	if id == -1 {
+		return errors.New("player doesnt play this game")
+	}
+
 	if len(move) != 2 {
 		return errors.New("need 2 characters (example: 22)")
 	}
@@ -69,6 +80,6 @@ func (g *Game) Move(move string) error {
 	if _, err := g.legalMove(x, y); err != nil {
 		return fmt.Errorf("illegal move: %w", err)
 	}
-	g.Board[x][y] = First
+	g.Board[x][y] = Mark(id + 1)
 	return nil
 }
