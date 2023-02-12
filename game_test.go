@@ -6,29 +6,36 @@ import (
 
 func TestGame(t *testing.T) {
 	t.Run("move", func(t *testing.T) {
-		player := NewPlayer(nil, 12)
-		game := NewGame(12, &player)
-		game.Move(&player, "00")
+		db := Memory{NewStubDatabase()}
+		var player Player
+		db.GetPlayer(12, &player)
+		game := NewGame(db, "122", player.ID)
+		game.Move(player.ID, "00")
 
 		want := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
 		AssertBoard(t, game.Board, want)
 	})
 	t.Run("2 players", func(t *testing.T) {
-		db := NewStubDatabase()
-		p1 := NewPlayer(db, 12)
-		p2 := NewPlayer(db, 13)
-		p1.NewGame(&p2)
+		mem := NewStubDatabase()
+		db := Memory{mem}
+		var p1 Player
+		var p2 Player
+		db.GetPlayer(12, &p1)
+		db.GetPlayer(13, &p2)
+		p1.NewGame(db, p2.ID)
 
-		game, err := p1.CurrentGame()
+		db.GetPlayer(p1.ID, &p1)
+		db.GetPlayer(p2.ID, &p2)
+		game, err := p1.CurrentGame(db)
 		AssertNoError(t, err)
 
-		err = game.Move(&p1, "00")
+		err = game.Move(p1.ID, "00")
 		AssertNoError(t, err)
 
 		want := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
 		AssertBoard(t, game.Board, want)
 
-		err = game.Move(&p2, "01")
+		err = game.Move(p2.ID, "01")
 		AssertNoError(t, err)
 
 		want = [3][3]Mark{{1, 2, 0}, {0, 0, 0}, {0, 0, 0}}

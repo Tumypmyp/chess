@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -13,69 +14,67 @@ type Sender interface {
 }
 
 type Player struct {
-	currentGame *Game
-	gamesID     []string
-	ChatID      int64
-	DB          Memory
-	bot         Sender
+	GamesID []string `json:"gamesID"`
+	ID      int64    `json:"ID"`
+	bot     Sender
 }
 
-func NewPlayerWithBot(db Map, ChatID int64, bot Sender) Player {
+func NewPlayerWithBot(db Map, ID int64, bot Sender) Player {
 	return Player{
-		DB:     Memory{db},
-		ChatID: ChatID,
-		bot:    bot,
+		ID:  ID,
+		bot: bot,
 	}
 }
 
-func NewPlayer(db Map, ChatID int64) Player {
+func NewPlayer(db Map, ID int64) Player {
 	return Player{
-		DB:     Memory{db},
-		ChatID: ChatID,
+		ID: ID,
 	}
 }
-func (p *Player) CurrentGame() (*Game, error) {
-	if p.currentGame == nil {
-		return nil, errors.New("no current game, try: /new_game")
+func (p Player) CurrentGame(db Map) (game Game, err error) {
+	if len(p.GamesID) == 0 {
+		return game, errors.New("no current game, try: /new_game")
 	}
-	return p.currentGame, nil
+	err = db.Get(p.GamesID[len(p.GamesID)-1], &game)
+	return
 }
 
-func (p *Player) SetNewGame(game *Game) {
-	p.currentGame = game
-	p.gamesID = append(p.gamesID, p.currentGame.ID)
+func (p *Player) SetNewGame(gameID string) {
+	p.GamesID = append(p.GamesID, gameID)
 }
 
-func (p *Player) NewGame(other ...*Player) *Game {
-	gameID, err := p.DB.incr("gameID")
+func (p Player) NewGame(db Memory, playersID ...int64) *Game {
+	gameID, err := db.incr("gameID")
 	if err != nil {
 		log.Printf("%v", err)
 	}
-	other = append([]*Player{p}, other...)
-	return NewGame(gameID, other...)
+	playersID = append([]int64{p.ID}, playersID...)
+
+	fmt.Println("players: ", playersID)
+	return NewGame(db, strconv.FormatInt(gameID, 10), playersID...)
 }
 
-func (p *Player) Move(move string) error {
-	game, err := p.CurrentGame()
+func (p *Player) Move(db Memory, move string) error {
+	game, err := p.CurrentGame(db)
 	if err != nil {
 		return err
 	}
-	if err = game.Move(p, move); err != nil {
+	if err = game.Move(p.ID, move); err != nil {
 		return err
 	}
-	if err := p.DB.Set(game.ID, game); err != nil {
+	if err := db.Set(game.ID, game); err != nil {
 		return fmt.Errorf("could not reach db: %w", err)
 	}
-	game.SendStatus()
+	game.SendStatus(db)
 	return nil
 }
 
 func (p *Player) Send(text string) {
-	msg := tgbotapi.NewMessage(p.ChatID, text)
+	msg := tgbotapi.NewMessage(p.ID, text)
+
 	if p.bot == nil {
 		return
 	}
-
 	if _, err := p.bot.Send(msg); err != nil {
 		log.Printf("cant send: %v", err)
 	}

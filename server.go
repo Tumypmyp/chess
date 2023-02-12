@@ -10,6 +10,8 @@ import (
 
 var ctx = context.Background()
 
+var database Memory
+
 func main() {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
 	if err != nil {
@@ -24,28 +26,28 @@ func main() {
 
 	updates := bot.GetUpdatesChan(updateConfig)
 
-	games, err := NewDatabase()
+	db, err := NewDatabase()
 	if err != nil {
 		panic(err)
 	}
+	database = Memory{db}
 
-	player := NewPlayerWithBot(games, 0, bot)
 	for update := range updates {
 		if update.Message == nil {
 			continue
 		}
 
-		player.ChatID = update.Message.Chat.ID
-		var err error
+		ID := update.Message.Chat.ID
+		var player Player
+		database.GetPlayer(ID, &player)
 
 		switch update.Message.Text {
 		case "/new_game":
-			player.NewGame().SendStatus()
+			player.NewGame(database).SendStatus(database)
 		default:
-			err = player.Move(update.Message.Text)
-		}
-		if err != nil {
-			player.Send(err.Error())
+			if err := player.Move(database, update.Message.Text); err != nil {
+				player.Send(err.Error())
+			}
 		}
 	}
 

@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"strconv"
 )
 
 type Mark int
@@ -25,19 +24,23 @@ func (m Mark) String() string {
 }
 
 type Game struct {
-	Players []*Player  `json:"player"`
-	Board   [3][3]Mark `json:"board"`
-	ID      string     `json:"ID:`
+	PlayersID []int64    `json:"players"`
+	Board     [3][3]Mark `json:"board"`
+	ID        string     `json:"ID:`
 }
 
-func NewGame(ID int64, players ...*Player) *Game {
+func NewGame(db Memory, ID string, players ...int64) *Game {
 	game := &Game{
-		Players: players,
-		ID:      strconv.FormatInt(ID, 10),
+		PlayersID: players,
+		ID:        ID,
 	}
-	for _, p := range players {
-		p.SetNewGame(game)
+	for _, id := range players {
+		var player Player
+		db.GetPlayer(id, &player)
+		player.SetNewGame(ID)
+		db.SetPlayer(player.ID, player)
 	}
+	db.Set(ID, game)
 	return game
 }
 
@@ -64,17 +67,17 @@ func (g *Game) legalMove(x, y int) (bool, error) {
 	return true, nil
 }
 
-func (g *Game) findPlayer(player *Player) (int, error) {
-	for i, p := range g.Players {
-		if p.ChatID == player.ChatID {
+func (g *Game) findPlayer(id int64) (int, error) {
+	for i, p := range g.PlayersID {
+		if p == id {
 			return i, nil
 		}
 	}
 	return -1, errors.New("player doesnt play this game")
 }
 
-func (g *Game) Move(player *Player, move string) error {
-	id, err := g.findPlayer(player)
+func (g *Game) Move(playerID int64, move string) error {
+	id, err := g.findPlayer(playerID)
 	if err != nil {
 		return err
 	}
@@ -90,8 +93,10 @@ func (g *Game) Move(player *Player, move string) error {
 	g.Board[x][y] = Mark(id + 1)
 	return nil
 }
-func (g *Game) SendStatus() {
-	for _, p := range g.Players {
-		p.Send(g.String())
+func (g *Game) SendStatus(db Memory) {
+	for _, id := range g.PlayersID {
+		var player Player
+		db.GetPlayer(id, &player)
+		player.Send(g.String())
 	}
 }

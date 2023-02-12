@@ -6,49 +6,64 @@ import (
 
 func TestPlayer(t *testing.T) {
 	t.Run("move player", func(t *testing.T) {
-		t.Log("test start")
-		p := NewPlayer(NewStubDatabase(), 123)
+		mem := NewStubDatabase()
+		db := Memory{mem}
+		var p Player
+		db.GetPlayer(123, &p)
 
-		p.NewGame()
-		game, err := p.CurrentGame()
+		p.NewGame(db)
+		db.GetPlayer(p.ID, &p)
+		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
-		p.Move("11")
+		p.Move(db, "11")
+		game, err = p.CurrentGame(db)
+		AssertNoError(t, err)
 		want := [3][3]Mark{{0, 0, 0}, {0, 1, 0}, {0, 0, 0}}
 		AssertBoard(t, game.Board, want)
 	})
 	t.Run("new game", func(t *testing.T) {
-		p := NewPlayer(NewStubDatabase(), 123)
+		db := Memory{NewStubDatabase()}
+		var p Player
+		db.GetPlayer(123, &p)
 
-		p.NewGame()
-		game, err := p.CurrentGame()
+		p.NewGame(db)
+
+		db.GetPlayer(123, &p)
+		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
-		p.Move("02")
+		p.Move(db, "02")
+
+		game, err = p.CurrentGame(db)
+		AssertNoError(t, err)
 		want := [3][3]Mark{{0, 0, 1}, {0, 0, 0}, {0, 0, 0}}
 		AssertBoard(t, game.Board, want)
 
-		p.NewGame()
+		p.NewGame(db)
 
-		game, err = p.CurrentGame()
+		game, err = p.CurrentGame(db)
 		AssertNoError(t, err)
 
 		want = [3][3]Mark{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}
 		AssertBoard(t, game.Board, want)
 	})
 	t.Run("new game is next id", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := Memory{NewStubDatabase()}
 		db.Set("gameID", 10)
 
-		p := NewPlayer(db, 123)
+		var p Player
+		db.GetPlayer(123, &p)
 
-		p.NewGame()
-		game, err := p.CurrentGame()
+		p.NewGame(db)
+		db.GetPlayer(123, &p)
+		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 		AssertString(t, game.ID, "10")
 
-		p.NewGame()
-		game, err = p.CurrentGame()
+		p.NewGame(db)
+		db.GetPlayer(123, &p)
+		game, err = p.CurrentGame(db)
 		AssertNoError(t, err)
 		AssertString(t, game.ID, "11")
 	})

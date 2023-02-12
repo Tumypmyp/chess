@@ -3,13 +3,28 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"strconv"
 
 	"github.com/redis/go-redis/v9"
 )
 
 type Memory struct {
 	Map
+}
+
+func (m *Memory) GetPlayer(ID int64, player *Player) {
+	if err := m.Get(strconv.FormatInt(ID, 10), player); err != nil {
+		p := NewPlayer(m, ID)
+		m.SetPlayer(ID, p)
+		m.GetPlayer(ID, player)
+		return
+	}
+}
+
+func (m *Memory) SetPlayer(ID int64, player Player) {
+	if err := m.Set(strconv.FormatInt(ID, 10), player); err != nil {
+		fmt.Println("error when setting")
+	}
 }
 
 func (g Memory) incr(key string) (int64, error) {
@@ -48,7 +63,6 @@ func (db Database) Set(key string, value interface{}) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("%v.set %v, %v, %v", db, ctx, key, p)
 	_, err = db.client.Set(ctx, key, p, 0).Result()
 	return err
 }
