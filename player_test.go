@@ -16,7 +16,7 @@ func TestPlayer(t *testing.T) {
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
-		p.Move(db, "11")
+		p.Move(db, "11", nil)
 		game, err = p.CurrentGame(db)
 		AssertNoError(t, err)
 		want := [3][3]Mark{{0, 0, 0}, {0, 1, 0}, {0, 0, 0}}
@@ -33,7 +33,7 @@ func TestPlayer(t *testing.T) {
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
-		p.Move(db, "02")
+		p.Move(db, "02", nil)
 
 		game, err = p.CurrentGame(db)
 		AssertNoError(t, err)

@@ -93,10 +93,10 @@ func (g *Game) Move(playerID int64, move string) error {
 	g.Board[x][y] = Mark(id + 1)
 	return nil
 }
-func (g *Game) SendStatus(db Memory) {
+func (g *Game) SendStatus(db Memory, bot Sender) {
 	for _, id := range g.PlayersID {
 		var player Player
 		db.GetPlayer(id, &player)
-		player.Send(g.String())
+		player.Send(g.String(), bot)
 	}
 }

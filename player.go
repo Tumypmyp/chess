@@ -16,13 +16,13 @@ type Sender interface {
 type Player struct {
 	GamesID []string `json:"gamesID"`
 	ID      int64    `json:"ID"`
-	bot     Sender
+	//bot     Sender
 }
 
 func NewPlayerWithBot(db Map, ID int64, bot Sender) Player {
 	return Player{
-		ID:  ID,
-		bot: bot,
+		ID: ID,
+		//	bot: bot,
 	}
 }
 
@@ -54,7 +54,7 @@ func (p Player) NewGame(db Memory, playersID ...int64) *Game {
 	return NewGame(db, strconv.FormatInt(gameID, 10), playersID...)
 }
 
-func (p *Player) Move(db Memory, move string) error {
+func (p *Player) Move(db Memory, move string, bot Sender) error {
 	game, err := p.CurrentGame(db)
 	if err != nil {
 		return err
@@ -65,17 +65,17 @@ func (p *Player) Move(db Memory, move string) error {
 	if err := db.Set(game.ID, game); err != nil {
 		return fmt.Errorf("could not reach db: %w", err)
 	}
-	game.SendStatus(db)
+	game.SendStatus(db, bot)
 	return nil
 }
 
-func (p *Player) Send(text string) {
+func (p *Player) Send(text string, bot Sender) {
 	msg := tgbotapi.NewMessage(p.ID, text)
 
-	if p.bot == nil {
+	if bot == nil {
 		return
 	}
-	if _, err := p.bot.Send(msg); err != nil {
+	if _, err := bot.Send(msg); err != nil {
 		log.Printf("cant send: %v", err)
 	}
 }

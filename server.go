@@ -43,10 +43,10 @@ func main() {
 
 		switch update.Message.Text {
 		case "/new_game":
-			player.NewGame(database).SendStatus(database)
+			player.NewGame(database).SendStatus(database, bot)
 		default:
-			if err := player.Move(database, update.Message.Text); err != nil {
-				player.Send(err.Error())
+			if err := player.Move(database, update.Message.Text, bot); err != nil {
+				player.Send(err.Error(), bot)
 			}
 		}
 	}
