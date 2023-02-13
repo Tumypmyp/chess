@@ -29,7 +29,7 @@ type Game struct {
 	ID        string     `json:"ID:`
 }
 
-func NewGame(db Memory, ID string, players ...int64) *Game {
+func NewGame(db Memory, ID string, bot Sender, players ...int64) *Game {
 	game := &Game{
 		PlayersID: players,
 		ID:        ID,
@@ -41,6 +41,7 @@ func NewGame(db Memory, ID string, players ...int64) *Game {
 		db.SetPlayer(player.ID, player)
 	}
 	db.Set(ID, game)
+	game.SendStatus(db, bot)
 	return game
 }
 

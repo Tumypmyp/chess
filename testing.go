@@ -17,6 +17,14 @@ func AssertNoError(t testing.TB, err error) {
 		t.Fatalf("didn't expect an error but got one: %v", err)
 	}
 }
+
+func AssertError(t testing.TB, err error) {
+	t.Helper()
+	if err == nil {
+		t.Fatalf("expected an error but did not get one: %v", err)
+	}
+}
+
 func AssertBoard(t testing.TB, got, want [3][3]Mark) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {

@@ -9,7 +9,7 @@ func TestGame(t *testing.T) {
 		db := Memory{NewStubDatabase()}
 		var player Player
 		db.GetPlayer(12, &player)
-		game := NewGame(db, "122", player.ID)
+		game := NewGame(db, "122", nil, player.ID)
 		game.Move(player.ID, "00")
 
 		want := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
@@ -22,7 +22,7 @@ func TestGame(t *testing.T) {
 		var p2 Player
 		db.GetPlayer(12, &p1)
 		db.GetPlayer(13, &p2)
-		p1.NewGame(db, p2.ID)
+		p1.NewGame(db, nil, p2.ID)
 
 		db.GetPlayer(p1.ID, &p1)
 		db.GetPlayer(p2.ID, &p2)

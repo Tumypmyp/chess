@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -8,13 +9,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+var ctx = context.Background()
+
 type Memory struct {
 	Map
 }
 
-func (m *Memory) GetPlayer(ID int64, player *Player) {
+func (m Memory) GetPlayer(ID int64, player *Player) {
 	if err := m.Get(strconv.FormatInt(ID, 10), player); err != nil {
-		p := NewPlayer(m, ID)
+		p := NewPlayer(m, ID, "")
 		m.SetPlayer(ID, p)
 		m.GetPlayer(ID, player)
 		return
@@ -48,14 +51,14 @@ type Database struct {
 	client *redis.Client
 }
 
-func NewDatabase() (Database, error) {
+func NewDatabase() (Memory, error) {
 	db := Database{redis.NewClient(&redis.Options{
 		Addr:     "redis:6379",
 		Password: "",
 		DB:       0,
 	})}
 	_, err := db.client.Ping(ctx).Result()
-	return db, err
+	return Memory{db}, err
 
 }
 func (db Database) Set(key string, value interface{}) error {

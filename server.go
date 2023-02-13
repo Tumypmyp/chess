@@ -1,18 +1,13 @@
 package main
 
 import (
-	"context"
 	"log"
 	"os"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-var ctx = context.Background()
-
-var database Memory
-
-func main() {
+func NewBot() (bot *tgbotapi.BotAPI) {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
 	if err != nil {
 		panic(err)
@@ -20,6 +15,12 @@ func main() {
 	bot.Debug = true
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
+
+	return
+}
+
+func main() {
+	bot := NewBot()
 
 	updateConfig := tgbotapi.NewUpdate(0)
 	updateConfig.Timeout = 30
@@ -30,7 +31,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	database = Memory{db}
+	database := Memory{db}
 
 	for update := range updates {
 		if update.Message == nil {
@@ -38,14 +39,17 @@ func main() {
 		}
 
 		ID := update.Message.Chat.ID
+		text := update.Message.Text
+
+		database.Set(update.Message.From.UserName, ID)
+
 		var player Player
 		database.GetPlayer(ID, &player)
-
-		switch update.Message.Text {
-		case "/new_game":
-			player.NewGame(database).SendStatus(database, bot)
+		switch text[0] {
+		case '/':
+			player.Do(db, bot, text)
 		default:
-			if err := player.Move(database, update.Message.Text, bot); err != nil {
+			if err := player.Move(database, text, bot); err != nil {
 				player.Send(err.Error(), bot)
 			}
 		}

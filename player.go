@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -14,24 +15,23 @@ type Sender interface {
 }
 
 type Player struct {
-	GamesID []string `json:"gamesID"`
-	ID      int64    `json:"ID"`
-	//bot     Sender
+	GamesID  []string `json:"gamesID"`
+	Username string   `json:"username"`
+	ID       int64    `json:"ID"`
 }
 
-func NewPlayerWithBot(db Map, ID int64, bot Sender) Player {
-	return Player{
-		ID: ID,
-		//	bot: bot,
+func NewPlayer(db Memory, ID int64, Username string) Player {
+	p := Player{
+		ID:       ID,
+		Username: Username,
 	}
+	db.Set(p.Username, p.ID)
+	db.SetPlayer(p.ID, p)
+	return p
 }
 
-func NewPlayer(db Map, ID int64) Player {
-	return Player{
-		ID: ID,
-	}
-}
-func (p Player) CurrentGame(db Map) (game Game, err error) {
+func (p *Player) CurrentGame(db Memory) (game Game, err error) {
+	db.GetPlayer(p.ID, p)
 	if len(p.GamesID) == 0 {
 		return game, errors.New("no current game, try: /new_game")
 	}
@@ -43,15 +43,13 @@ func (p *Player) SetNewGame(gameID string) {
 	p.GamesID = append(p.GamesID, gameID)
 }
 
-func (p Player) NewGame(db Memory, playersID ...int64) *Game {
-	gameID, err := db.incr("gameID")
-	if err != nil {
-		log.Printf("%v", err)
-	}
+func (p *Player) NewGame(db Memory, bot Sender, playersID ...int64) (game *Game) {
+	gameID, _ := db.incr("gameID")
 	playersID = append([]int64{p.ID}, playersID...)
 
-	fmt.Println("players: ", playersID)
-	return NewGame(db, strconv.FormatInt(gameID, 10), playersID...)
+	game = NewGame(db, strconv.FormatInt(gameID, 10), bot, playersID...)
+	db.GetPlayer(p.ID, p)
+	return
 }
 
 func (p *Player) Move(db Memory, move string, bot Sender) error {
@@ -78,4 +76,22 @@ func (p *Player) Send(text string, bot Sender) {
 	if _, err := bot.Send(msg); err != nil {
 		log.Printf("cant send: %v", err)
 	}
+}
+func (p *Player) Do(db Memory, bot Sender, cmd string) error {
+	pref := "/new_game"
+	if strings.HasPrefix(cmd, pref) {
+		var other string
+		var players []int64
+		if _, err := fmt.Sscanf(cmd, "/new_game @%v", &other); err == nil {
+			var id int64
+			if err := db.Get(other, &id); err != nil {
+				return err
+			}
+			players = []int64{id}
+		}
+		log.Printf("new game with %v", players)
+		p.NewGame(db, bot, players...)
+		return nil
+	}
+	return errors.New("no such command")
 }

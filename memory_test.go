@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -71,10 +70,11 @@ func TestStubDatabase(t *testing.T) {
 }
 
 func deepCopy(a, b interface{}) {
-	byt, err := json.Marshal(a)
-	if err != nil {
-		fmt.Printf("%v", err)
-	}
+	byt, _ := json.Marshal(a)
+	//if err != nil {
+	//		log.Printf("%v", err)
+
+	//	}
 	json.Unmarshal(byt, b)
 }
 

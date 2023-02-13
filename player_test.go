@@ -11,7 +11,7 @@ func TestPlayer(t *testing.T) {
 		var p Player
 		db.GetPlayer(123, &p)
 
-		p.NewGame(db)
+		p.NewGame(db, nil)
 		db.GetPlayer(p.ID, &p)
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
@@ -27,7 +27,7 @@ func TestPlayer(t *testing.T) {
 		var p Player
 		db.GetPlayer(123, &p)
 
-		p.NewGame(db)
+		p.NewGame(db, nil)
 
 		db.GetPlayer(123, &p)
 		game, err := p.CurrentGame(db)
@@ -40,7 +40,7 @@ func TestPlayer(t *testing.T) {
 		want := [3][3]Mark{{0, 0, 1}, {0, 0, 0}, {0, 0, 0}}
 		AssertBoard(t, game.Board, want)
 
-		p.NewGame(db)
+		p.NewGame(db, nil)
 
 		game, err = p.CurrentGame(db)
 		AssertNoError(t, err)
@@ -55,16 +55,86 @@ func TestPlayer(t *testing.T) {
 		var p Player
 		db.GetPlayer(123, &p)
 
-		p.NewGame(db)
+		p.NewGame(db, nil)
 		db.GetPlayer(123, &p)
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 		AssertString(t, game.ID, "10")
 
-		p.NewGame(db)
+		p.NewGame(db, nil)
 		db.GetPlayer(123, &p)
 		game, err = p.CurrentGame(db)
 		AssertNoError(t, err)
 		AssertString(t, game.ID, "11")
+	})
+	t.Run(".NewGame updates player", func(t *testing.T) {
+		db := Memory{NewStubDatabase()}
+		id := int64(123456)
+		var p Player
+		db.GetPlayer(id, &p)
+
+		p.NewGame(db, nil)
+
+		if len(p.GamesID) != 1 {
+			t.Errorf("wanted 1 game, got %v", p.GamesID)
+		}
+	})
+
+	t.Run("current game updates player", func(t *testing.T) {
+		db := Memory{NewStubDatabase()}
+		id := int64(123456)
+		var p Player
+		db.GetPlayer(id, &p)
+
+		NewGame(db, "123", nil, id)
+		_, err := p.CurrentGame(db)
+		AssertNoError(t, err)
+
+	})
+	t.Run("do", func(t *testing.T) {
+		db := Memory{NewStubDatabase()}
+		id := int64(1234)
+		var p Player
+		db.GetPlayer(id, &p)
+
+		var err error
+		err = p.Do(db, nil, "/new_game")
+		AssertNoError(t, err)
+
+		db.GetPlayer(id, &p)
+		_, err = p.CurrentGame(db)
+		AssertNoError(t, err)
+
+		err = p.Do(db, nil, "/123")
+		AssertError(t, err)
+	})
+	t.Run("do start game with other", func(t *testing.T) {
+		db := Memory{NewStubDatabase()}
+		p1 := NewPlayer(db, 123, "abc")
+		p2 := NewPlayer(db, 456, "def")
+
+		var err error
+		err = p1.Do(db, nil, "/new_game @"+p2.Username)
+		AssertNoError(t, err)
+
+		_, err = p1.CurrentGame(db)
+		AssertNoError(t, err)
+		_, err = p2.CurrentGame(db)
+		AssertNoError(t, err)
+
+	})
+	t.Run("start game with other", func(t *testing.T) {
+		db := Memory{NewStubDatabase()}
+		p1 := NewPlayer(db, 123, "abc")
+		p2 := NewPlayer(db, 456, "def")
+
+		p1.NewGame(db, nil, p2.ID)
+
+		var err error
+		_, err = p1.CurrentGame(db)
+		AssertNoError(t, err)
+		_, err = p2.CurrentGame(db)
+		AssertNoError(t, err)
+
 	})
 }
