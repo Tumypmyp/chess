@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 )
 
 type Mark int
@@ -24,28 +25,40 @@ func (m Mark) String() string {
 }
 
 type Game struct {
-	PlayersID []int64    `json:"players"`
-	Board     [3][3]Mark `json:"board"`
-	ID        string     `json:"ID:`
+	PlayersID       []int64    `json:"players"`
+	PlayersUsername []string   `json:"username"`
+	Board           [3][3]Mark `json:"board"`
+	ID              string     `json:"ID:`
 }
 
-func NewGame(db Memory, ID string, bot Sender, players ...int64) *Game {
-	game := &Game{
+func NewGame(db Memory, ID string, bot Sender, players ...int64) Game {
+	game := Game{
 		PlayersID: players,
 		ID:        ID,
 	}
 	for _, id := range players {
 		var player Player
-		db.GetPlayer(id, &player)
+		err := db.GetPlayer(id, &player)
+		if err != nil {
+			log.Println("no such player", id)
+		}
+		log.Println("player", player)
 		player.SetNewGame(ID)
 		db.SetPlayer(player.ID, player)
+
+		game.PlayersUsername = append(game.PlayersUsername, player.Username)
 	}
 	db.Set(ID, game)
+	log.Printf("game:%+v,\n%v", game, game.String())
 	game.SendStatus(db, bot)
 	return game
 }
 
 func (g *Game) String() (s string) {
+	for _, username := range g.PlayersUsername {
+		s += "@" + username + " "
+	}
+	s += "\n"
 	for _, row := range g.Board {
 		for _, val := range row {
 			s += val.String()

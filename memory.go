@@ -15,13 +15,11 @@ type Memory struct {
 	Map
 }
 
-func (m Memory) GetPlayer(ID int64, player *Player) {
+func (m Memory) GetPlayer(ID int64, player *Player) error {
 	if err := m.Get(strconv.FormatInt(ID, 10), player); err != nil {
-		p := NewPlayer(m, ID, "")
-		m.SetPlayer(ID, p)
-		m.GetPlayer(ID, player)
-		return
+		return fmt.Errorf("can not get player by id: %w", err)
 	}
+	return nil
 }
 
 func (m *Memory) SetPlayer(ID int64, player Player) {

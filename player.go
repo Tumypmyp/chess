@@ -33,7 +33,7 @@ func NewPlayer(db Memory, ID int64, Username string) Player {
 func (p *Player) CurrentGame(db Memory) (game Game, err error) {
 	db.GetPlayer(p.ID, p)
 	if len(p.GamesID) == 0 {
-		return game, errors.New("no current game, try: /new_game")
+		return game, errors.New("no current game,\ntry: /new_game")
 	}
 	err = db.Get(p.GamesID[len(p.GamesID)-1], &game)
 	return
@@ -43,7 +43,7 @@ func (p *Player) SetNewGame(gameID string) {
 	p.GamesID = append(p.GamesID, gameID)
 }
 
-func (p *Player) NewGame(db Memory, bot Sender, playersID ...int64) (game *Game) {
+func (p *Player) NewGame(db Memory, bot Sender, playersID ...int64) (game Game) {
 	gameID, _ := db.incr("gameID")
 	playersID = append([]int64{p.ID}, playersID...)
 
@@ -89,7 +89,6 @@ func (p *Player) Do(db Memory, bot Sender, cmd string) error {
 			}
 			players = []int64{id}
 		}
-		log.Printf("new game with %v", players)
 		p.NewGame(db, bot, players...)
 		return nil
 	}

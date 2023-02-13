@@ -8,8 +8,7 @@ func TestPlayer(t *testing.T) {
 	t.Run("move player", func(t *testing.T) {
 		mem := NewStubDatabase()
 		db := Memory{mem}
-		var p Player
-		db.GetPlayer(123, &p)
+		p := NewPlayer(db, 123, "pl")
 
 		p.NewGame(db, nil)
 		db.GetPlayer(p.ID, &p)
@@ -24,8 +23,7 @@ func TestPlayer(t *testing.T) {
 	})
 	t.Run("new game", func(t *testing.T) {
 		db := Memory{NewStubDatabase()}
-		var p Player
-		db.GetPlayer(123, &p)
+		p := NewPlayer(db, 123, "pl")
 
 		p.NewGame(db, nil)
 
@@ -52,8 +50,7 @@ func TestPlayer(t *testing.T) {
 		db := Memory{NewStubDatabase()}
 		db.Set("gameID", 10)
 
-		var p Player
-		db.GetPlayer(123, &p)
+		p := NewPlayer(db, 123, "pl")
 
 		p.NewGame(db, nil)
 		db.GetPlayer(123, &p)
@@ -70,8 +67,7 @@ func TestPlayer(t *testing.T) {
 	t.Run(".NewGame updates player", func(t *testing.T) {
 		db := Memory{NewStubDatabase()}
 		id := int64(123456)
-		var p Player
-		db.GetPlayer(id, &p)
+		p := NewPlayer(db, id, "pl")
 
 		p.NewGame(db, nil)
 
@@ -83,8 +79,7 @@ func TestPlayer(t *testing.T) {
 	t.Run("current game updates player", func(t *testing.T) {
 		db := Memory{NewStubDatabase()}
 		id := int64(123456)
-		var p Player
-		db.GetPlayer(id, &p)
+		p := NewPlayer(db, id, "pl")
 
 		NewGame(db, "123", nil, id)
 		_, err := p.CurrentGame(db)
@@ -94,8 +89,7 @@ func TestPlayer(t *testing.T) {
 	t.Run("do", func(t *testing.T) {
 		db := Memory{NewStubDatabase()}
 		id := int64(1234)
-		var p Player
-		db.GetPlayer(id, &p)
+		p := NewPlayer(db, 123, "pl")
 
 		var err error
 		err = p.Do(db, nil, "/new_game")

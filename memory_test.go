@@ -12,7 +12,9 @@ func TestMemory(t *testing.T) {
 	t.Run("get", func(t *testing.T) {
 		db := Memory{NewStubDatabase()}
 		var player Player
-		db.GetPlayer(12, &player)
+		err := db.GetPlayer(12, &player)
+		AssertError(t, err)
+		player = NewPlayer(db, 12, "abc")
 
 		t.Log(player)
 		if player.ID != 12 {

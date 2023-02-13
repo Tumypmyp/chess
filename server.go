@@ -13,7 +13,6 @@ func NewBot() (bot *tgbotapi.BotAPI) {
 		panic(err)
 	}
 	bot.Debug = true
-
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
 	return
@@ -24,7 +23,6 @@ func main() {
 
 	updateConfig := tgbotapi.NewUpdate(0)
 	updateConfig.Timeout = 30
-
 	updates := bot.GetUpdatesChan(updateConfig)
 
 	db, err := NewDatabase()
@@ -41,17 +39,20 @@ func main() {
 		ID := update.Message.Chat.ID
 		text := update.Message.Text
 
-		database.Set(update.Message.From.UserName, ID)
-
 		var player Player
-		database.GetPlayer(ID, &player)
+		var err error
+		if err = database.GetPlayer(ID, &player); err != nil {
+			player = NewPlayer(db, ID, update.Message.From.UserName)
+		}
+
 		switch text[0] {
 		case '/':
-			player.Do(db, bot, text)
+			err = player.Do(db, bot, text)
 		default:
-			if err := player.Move(database, text, bot); err != nil {
-				player.Send(err.Error(), bot)
-			}
+			err = player.Move(database, text, bot)
+		}
+		if err != nil {
+			player.Send(err.Error(), bot)
 		}
 	}
 
