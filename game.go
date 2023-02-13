@@ -42,14 +42,14 @@ func NewGame(db Memory, ID string, bot Sender, players ...int64) Game {
 		if err != nil {
 			log.Println("no such player", id)
 		}
-		log.Println("player", player)
+		//log.Println("player", player)
 		player.SetNewGame(ID)
 		db.SetPlayer(player.ID, player)
 
 		game.PlayersUsername = append(game.PlayersUsername, player.Username)
 	}
 	db.Set(ID, game)
-	log.Printf("game:%+v,\n%v", game, game.String())
+	//	log.Printf("game:%+v,\n%v", game, game.String())
 	game.SendStatus(db, bot)
 	return game
 }

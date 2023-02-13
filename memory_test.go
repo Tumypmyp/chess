@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"reflect"
 	"testing"
 )
@@ -72,11 +73,11 @@ func TestStubDatabase(t *testing.T) {
 }
 
 func deepCopy(a, b interface{}) {
-	byt, _ := json.Marshal(a)
-	//if err != nil {
-	//		log.Printf("%v", err)
+	byt, err := json.Marshal(a)
+	if err != nil {
+		log.Fatalf("%v", err)
 
-	//	}
+	}
 	json.Unmarshal(byt, b)
 }
 
@@ -101,4 +102,16 @@ func (s StubDatabase) Get(key string, dest interface{}) error {
 func (s StubDatabase) Set(key string, value interface{}) error {
 	(*s.DB)[key] = value
 	return nil
+}
+func (s StubDatabase) Incr(key string) (int64, error) {
+	val, ok := (*s.DB)[key]
+	if !ok {
+		return 0, errors.New("no value")
+	}
+	val2, ok2 := val.(int64)
+	if !ok2 {
+		return 0, errors.New("value not int")
+	}
+	(*s.DB)[key] = val2 + 1
+	return val2 + 1, nil
 }

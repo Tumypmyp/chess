@@ -28,21 +28,15 @@ func (m *Memory) SetPlayer(ID int64, player Player) {
 	}
 }
 
-func (g Memory) incr(key string) (int64, error) {
-	var value int64
-	if err := g.Get(key, &value); err != nil {
-		return value, fmt.Errorf("could not restore, %v = %v: %w", key, value, err)
-	}
-	if err := g.Set(key, value+1); err != nil {
-		return value, fmt.Errorf("could not store, %v = %v + 1: %w", key, value, err)
-	}
-	return value, nil
+func (g Memory) Incr(key string) (int64, error) {
+	return g.Map.Incr(key)
 
 }
 
 type Map interface {
 	Get(key string, dest interface{}) error
 	Set(key string, value interface{}) error
+	Incr(key string) (int64, error)
 }
 
 type Database struct {
@@ -75,4 +69,8 @@ func (db Database) Get(key string, dest interface{}) error {
 		return err
 	}
 	return json.Unmarshal(value, dest)
+}
+func (db Database) Incr(key string) (int64, error) {
+	val, err := db.client.Incr(ctx, key).Result()
+	return val, err
 }

@@ -44,7 +44,10 @@ func (p *Player) SetNewGame(gameID string) {
 }
 
 func (p *Player) NewGame(db Memory, bot Sender, playersID ...int64) (game Game) {
-	gameID, _ := db.incr("gameID")
+	gameID, err := db.Incr("gameID")
+	if err != nil {
+		// log.Printf("cant restore id %v", err)
+	}
 	playersID = append([]int64{p.ID}, playersID...)
 
 	game = NewGame(db, strconv.FormatInt(gameID, 10), bot, playersID...)

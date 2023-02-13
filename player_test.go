@@ -48,7 +48,7 @@ func TestPlayer(t *testing.T) {
 	})
 	t.Run("new game is next id", func(t *testing.T) {
 		db := Memory{NewStubDatabase()}
-		db.Set("gameID", 10)
+		db.Set("gameID", int64(9))
 
 		p := NewPlayer(db, 123, "pl")
 
