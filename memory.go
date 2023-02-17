@@ -3,38 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/redis/go-redis/v9"
 )
 
 var ctx = context.Background()
 
-type Memory struct {
-	Map
-}
-
-func (m Memory) GetPlayer(ID int64, player *Player) error {
-	key := fmt.Sprintf("user:%d", ID)
-	if err := m.Get(key, player); err != nil {
-		return fmt.Errorf("can not get player by id: %w", err)
-	}
-	return nil
-}
-
-func (m *Memory) SetPlayer(ID int64, player Player) {
-	key := fmt.Sprintf("user:%d", ID)
-	if err := m.Set(key, player); err != nil {
-		fmt.Println("error when setting pleyer")
-	}
-}
-
-func (g Memory) Incr(key string) (int64, error) {
-	return g.Map.Incr(key)
-
-}
-
-type Map interface {
+type Memory interface {
 	Get(key string, dest interface{}) error
 	Set(key string, value interface{}) error
 	Incr(key string) (int64, error)
@@ -51,7 +26,7 @@ func NewDatabase() (Memory, error) {
 		DB:       0,
 	})}
 	_, err := db.client.Ping(ctx).Result()
-	return Memory{db}, err
+	return db, err
 
 }
 func (db Database) Set(key string, value interface{}) error {

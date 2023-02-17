@@ -28,27 +28,31 @@ type Game struct {
 	PlayersID       []int64    `json:"players"`
 	PlayersUsername []string   `json:"username"`
 	Board           [3][3]Mark `json:"board"`
-	ID              string     `json:"ID`
+	ID              int64      `json:"ID"`
 }
 
-func NewGame(db Memory, ID string, bot Sender, players ...int64) Game {
+func NewGame(db Memory, bot Sender, players ...int64) Game {
+	ID, err := db.Incr("gameID")
+	if err != nil {
+		// log.Printf("cant restore id %v", err)
+	}
 	game := Game{
 		PlayersID: players,
 		ID:        ID,
 	}
 	for _, id := range players {
 		var player Player
-		err := db.GetPlayer(id, &player)
+		err := player.Get(id, db)
 		if err != nil {
 			log.Println("no such player", id)
 		}
 		//log.Println("player", player)
 		player.SetNewGame(ID)
-		db.SetPlayer(player.ID, player)
+		player.Store(db)
 
 		game.PlayersUsername = append(game.PlayersUsername, player.Username)
 	}
-	db.Set(ID, game)
+	db.Set(fmt.Sprintf("game:%d", ID), game)
 	//	log.Printf("game:%+v,\n%v", game, game.String())
 	game.SendStatus(db, bot)
 	return game
@@ -110,7 +114,7 @@ func (g *Game) Move(playerID int64, move string) error {
 func (g *Game) SendStatus(db Memory, bot Sender) {
 	for _, id := range g.PlayersID {
 		var player Player
-		db.GetPlayer(id, &player)
+		player.Get(id, db)
 		player.Send(g.String(), bot)
 	}
 }

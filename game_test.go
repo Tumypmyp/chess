@@ -6,27 +6,27 @@ import (
 
 func TestGame(t *testing.T) {
 	t.Run("move", func(t *testing.T) {
-		db := Memory{NewStubDatabase()}
+		db := NewStubDatabase()
 		player := NewPlayer(db, 12, "pl")
-		game := NewGame(db, "122", nil, player.ID)
+		game := NewGame(db, nil, player.ID)
 		game.Move(player.ID, "00")
 
 		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
 		want := Game{PlayersID: []int64{12},
 			PlayersUsername: []string{"pl"},
 			Board:           board,
-			ID:              "122"}
+			ID:              0}
 		AssertGame(t, game, want)
 	})
 	t.Run("2 players", func(t *testing.T) {
 		mem := NewStubDatabase()
-		db := Memory{mem}
+		db := mem
 		p1 := NewPlayer(db, 12, "pl12")
 		p2 := NewPlayer(db, 13, "pl13")
 		p1.NewGame(db, nil, p2.ID)
 
-		db.GetPlayer(p1.ID, &p1)
-		db.GetPlayer(p2.ID, &p2)
+		p1.Get(p1.ID, db)
+		p2.Get(p2.ID, db)
 		game, err := p1.CurrentGame(db)
 		AssertNoError(t, err)
 
@@ -37,7 +37,7 @@ func TestGame(t *testing.T) {
 		want := Game{PlayersID: []int64{12, 13},
 			PlayersUsername: []string{"pl12", "pl13"},
 			Board:           board,
-			ID:              "0"}
+			ID:              0}
 		AssertGame(t, game, want)
 
 		err = game.Move(p2.ID, "01")

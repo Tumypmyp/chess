@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -15,9 +14,9 @@ type Sender interface {
 }
 
 type Player struct {
-	GamesID  []string `json:"gamesID"`
-	Username string   `json:"username"`
-	ID       int64    `json:"ID"`
+	GamesID  []int64 `json:"gamesID"`
+	Username string  `json:"username"`
+	ID       int64   `json:"ID"`
 }
 
 func NewPlayer(db Memory, ID int64, Username string) Player {
@@ -26,32 +25,29 @@ func NewPlayer(db Memory, ID int64, Username string) Player {
 		Username: Username,
 	}
 	db.Set(p.Username, p.ID)
-	db.SetPlayer(p.ID, p)
+	p.Store(db)
 	return p
 }
 
 func (p *Player) CurrentGame(db Memory) (game Game, err error) {
-	db.GetPlayer(p.ID, p)
+	p.Get(p.ID, db)
 	if len(p.GamesID) == 0 {
 		return game, errors.New("no current game,\ntry: /new_game")
 	}
-	err = db.Get(p.GamesID[len(p.GamesID)-1], &game)
+	err = db.Get(fmt.Sprintf("game:%d", p.GamesID[len(p.GamesID)-1]), &game)
 	return
 }
 
-func (p *Player) SetNewGame(gameID string) {
+func (p *Player) SetNewGame(gameID int64) {
 	p.GamesID = append(p.GamesID, gameID)
 }
 
 func (p *Player) NewGame(db Memory, bot Sender, playersID ...int64) (game Game) {
-	gameID, err := db.Incr("gameID")
-	if err != nil {
-		// log.Printf("cant restore id %v", err)
-	}
+
 	playersID = append([]int64{p.ID}, playersID...)
 
-	game = NewGame(db, strconv.FormatInt(gameID, 10), bot, playersID...)
-	db.GetPlayer(p.ID, p)
+	game = NewGame(db, bot, playersID...)
+	p.Get(p.ID, db)
 	return
 }
 
@@ -63,7 +59,7 @@ func (p *Player) Move(db Memory, move string, bot Sender) error {
 	if err = game.Move(p.ID, move); err != nil {
 		return err
 	}
-	if err := db.Set(game.ID, game); err != nil {
+	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
 		return fmt.Errorf("could not reach db: %w", err)
 	}
 	game.SendStatus(db, bot)
@@ -96,4 +92,18 @@ func (p *Player) Do(db Memory, bot Sender, cmd string) error {
 		return nil
 	}
 	return errors.New("no such command")
+}
+func (p *Player) Get(ID int64, m Memory) error {
+	key := fmt.Sprintf("user:%d", ID)
+	if err := m.Get(key, p); err != nil {
+		return fmt.Errorf("can not get player by id: %w", err)
+	}
+	return nil
+}
+
+func (p *Player) Store(m Memory) {
+	key := fmt.Sprintf("user:%d", p.ID)
+	if err := m.Set(key, p); err != nil {
+		fmt.Println("error when setting pleyer")
+	}
 }

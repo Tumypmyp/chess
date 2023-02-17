@@ -29,7 +29,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	database := Memory{db}
 
 	for update := range updates {
 		if update.Message == nil {
@@ -41,7 +40,7 @@ func main() {
 
 		var player Player
 		var err error
-		if err = database.GetPlayer(ID, &player); err != nil {
+		if err = player.Get(ID, db); err != nil {
 			player = NewPlayer(db, ID, update.Message.From.UserName)
 		}
 
@@ -49,7 +48,7 @@ func main() {
 		case '/':
 			err = player.Do(db, bot, text)
 		default:
-			err = player.Move(database, text, bot)
+			err = player.Move(db, text, bot)
 		}
 		if err != nil {
 			player.Send(err.Error(), bot)

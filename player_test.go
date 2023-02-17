@@ -7,11 +7,11 @@ import (
 func TestPlayer(t *testing.T) {
 	t.Run("move player", func(t *testing.T) {
 		mem := NewStubDatabase()
-		db := Memory{mem}
+		db := mem
 		p := NewPlayer(db, 123, "pl")
 
 		p.NewGame(db, nil)
-		db.GetPlayer(p.ID, &p)
+		p.Get(p.ID, db)
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
@@ -22,12 +22,12 @@ func TestPlayer(t *testing.T) {
 		AssertBoard(t, game.Board, want)
 	})
 	t.Run("new game", func(t *testing.T) {
-		db := Memory{NewStubDatabase()}
+		db := NewStubDatabase()
 		p := NewPlayer(db, 123, "pl")
 
 		p.NewGame(db, nil)
 
-		db.GetPlayer(123, &p)
+		p.Get(123, db)
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
@@ -47,25 +47,25 @@ func TestPlayer(t *testing.T) {
 		AssertBoard(t, game.Board, want)
 	})
 	t.Run("new game is next id", func(t *testing.T) {
-		db := Memory{NewStubDatabase()}
+		db := NewStubDatabase()
 		db.Set("gameID", int64(9))
 
 		p := NewPlayer(db, 123, "pl")
 
 		p.NewGame(db, nil)
-		db.GetPlayer(123, &p)
+		p.Get(123, db)
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
-		AssertString(t, game.ID, "10")
+		AssertInt(t, game.ID, 10)
 
 		p.NewGame(db, nil)
-		db.GetPlayer(123, &p)
+		p.Get(123, db)
 		game, err = p.CurrentGame(db)
 		AssertNoError(t, err)
-		AssertString(t, game.ID, "11")
+		AssertInt(t, game.ID, 11)
 	})
 	t.Run(".NewGame updates player", func(t *testing.T) {
-		db := Memory{NewStubDatabase()}
+		db := NewStubDatabase()
 		id := int64(123456)
 		p := NewPlayer(db, id, "pl")
 
@@ -77,17 +77,17 @@ func TestPlayer(t *testing.T) {
 	})
 
 	t.Run("current game updates player", func(t *testing.T) {
-		db := Memory{NewStubDatabase()}
+		db := NewStubDatabase()
 		id := int64(123456)
 		p := NewPlayer(db, id, "pl")
 
-		NewGame(db, "123", nil, id)
+		NewGame(db, nil, id)
 		_, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
 	})
 	t.Run("do", func(t *testing.T) {
-		db := Memory{NewStubDatabase()}
+		db := NewStubDatabase()
 		id := int64(1234)
 		p := NewPlayer(db, 123, "pl")
 
@@ -95,7 +95,7 @@ func TestPlayer(t *testing.T) {
 		err = p.Do(db, nil, "/new_game")
 		AssertNoError(t, err)
 
-		db.GetPlayer(id, &p)
+		p.Get(id, db)
 		_, err = p.CurrentGame(db)
 		AssertNoError(t, err)
 
@@ -103,7 +103,7 @@ func TestPlayer(t *testing.T) {
 		AssertError(t, err)
 	})
 	t.Run("do start game with other", func(t *testing.T) {
-		db := Memory{NewStubDatabase()}
+		db := NewStubDatabase()
 		p1 := NewPlayer(db, 123, "abc")
 		p2 := NewPlayer(db, 456, "def")
 
@@ -118,7 +118,7 @@ func TestPlayer(t *testing.T) {
 
 	})
 	t.Run("start game with other", func(t *testing.T) {
-		db := Memory{NewStubDatabase()}
+		db := NewStubDatabase()
 		p1 := NewPlayer(db, 123, "abc")
 		p2 := NewPlayer(db, 456, "def")
 

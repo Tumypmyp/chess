@@ -5,6 +5,13 @@ import (
 	"testing"
 )
 
+func AssertInt(t testing.TB, got, want int64) {
+	t.Helper()
+	if got != want {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
 func AssertGame(t testing.TB, got, want Game) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {
