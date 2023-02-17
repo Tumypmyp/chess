@@ -25,10 +25,11 @@ func (m Mark) String() string {
 }
 
 type Game struct {
-	PlayersID       []int64    `json:"players"`
-	PlayersUsername []string   `json:"username"`
-	Board           [3][3]Mark `json:"board"`
-	ID              int64      `json:"ID"`
+	ID            int64   `json:"ID"`
+	Description   string  `json:"description"`
+	PlayersID     []int64 `json:"players"`
+	CurrentPlayer int
+	Board         [3][3]Mark `json:"board"`
 }
 
 func NewGame(db Memory, bot Sender, players ...int64) Game {
@@ -50,7 +51,7 @@ func NewGame(db Memory, bot Sender, players ...int64) Game {
 		player.SetNewGame(ID)
 		player.Store(db)
 
-		game.PlayersUsername = append(game.PlayersUsername, player.Username)
+		game.Description += "@" + player.Username + " "
 	}
 	db.Set(fmt.Sprintf("game:%d", ID), game)
 	//	log.Printf("game:%+v,\n%v", game, game.String())
@@ -59,10 +60,7 @@ func NewGame(db Memory, bot Sender, players ...int64) Game {
 }
 
 func (g *Game) String() (s string) {
-	for _, username := range g.PlayersUsername {
-		s += "@" + username + " "
-	}
-	s += "\n"
+	s = g.Description + "\n"
 	for _, row := range g.Board {
 		for _, val := range row {
 			s += val.String()
@@ -95,9 +93,12 @@ func (g *Game) findPlayer(id int64) (int, error) {
 }
 
 func (g *Game) Move(playerID int64, move string) error {
-	id, err := g.findPlayer(playerID)
-	if err != nil {
-		return err
+	//id, err := g.findPlayer(playerID)
+	//	if err != nil {
+	//return err
+	//	}
+	if playerID != g.PlayersID[g.CurrentPlayer] {
+		return errors.New("not your turn")
 	}
 
 	if len(move) != 2 {
@@ -108,7 +109,8 @@ func (g *Game) Move(playerID int64, move string) error {
 	if _, err := g.legalMove(x, y); err != nil {
 		return fmt.Errorf("illegal move: %w", err)
 	}
-	g.Board[x][y] = Mark(id + 1)
+	g.Board[x][y] = Mark(g.CurrentPlayer + 1)
+	g.CurrentPlayer = (g.CurrentPlayer + 1) % len(g.PlayersID)
 	return nil
 }
 func (g *Game) SendStatus(db Memory, bot Sender) {

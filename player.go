@@ -24,7 +24,7 @@ func NewPlayer(db Memory, ID int64, Username string) Player {
 		ID:       ID,
 		Username: Username,
 	}
-	db.Set(p.Username, p.ID)
+	db.Set(fmt.Sprintf("username:%v", p.Username), p.ID)
 	p.Store(db)
 	return p
 }
@@ -83,7 +83,8 @@ func (p *Player) Do(db Memory, bot Sender, cmd string) error {
 		var players []int64
 		if _, err := fmt.Sscanf(cmd, "/new_game @%v", &other); err == nil {
 			var id int64
-			if err := db.Get(other, &id); err != nil {
+			key := fmt.Sprintf("username:%v", other)
+			if err := db.Get(key, &id); err != nil {
 				return fmt.Errorf("cant find player @%v", other)
 			}
 			players = []int64{id}
