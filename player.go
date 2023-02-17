@@ -88,7 +88,7 @@ func (p *Player) Do(db Memory, bot Sender, cmd string) error {
 		if _, err := fmt.Sscanf(cmd, "/new_game @%v", &other); err == nil {
 			var id int64
 			if err := db.Get(other, &id); err != nil {
-				return err
+				return fmt.Errorf("cant find player @%v", other)
 			}
 			players = []int64{id}
 		}

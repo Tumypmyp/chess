@@ -28,7 +28,7 @@ type Game struct {
 	PlayersID       []int64    `json:"players"`
 	PlayersUsername []string   `json:"username"`
 	Board           [3][3]Mark `json:"board"`
-	ID              string     `json:"ID:`
+	ID              string     `json:"ID`
 }
 
 func NewGame(db Memory, ID string, bot Sender, players ...int64) Game {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -16,15 +15,17 @@ type Memory struct {
 }
 
 func (m Memory) GetPlayer(ID int64, player *Player) error {
-	if err := m.Get(strconv.FormatInt(ID, 10), player); err != nil {
+	key := fmt.Sprintf("user:%d", ID)
+	if err := m.Get(key, player); err != nil {
 		return fmt.Errorf("can not get player by id: %w", err)
 	}
 	return nil
 }
 
 func (m *Memory) SetPlayer(ID int64, player Player) {
-	if err := m.Set(strconv.FormatInt(ID, 10), player); err != nil {
-		fmt.Println("error when setting")
+	key := fmt.Sprintf("user:%d", ID)
+	if err := m.Set(key, player); err != nil {
+		fmt.Println("error when setting pleyer")
 	}
 }
 
