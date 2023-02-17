@@ -15,7 +15,7 @@ func TestPlayer(t *testing.T) {
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
-		p.Move(db, "11", nil)
+		p.Move(db, nil, "11")
 		game, err = p.CurrentGame(db)
 		AssertNoError(t, err)
 		want := [3][3]Mark{{0, 0, 0}, {0, 1, 0}, {0, 0, 0}}
@@ -31,7 +31,7 @@ func TestPlayer(t *testing.T) {
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
-		p.Move(db, "02", nil)
+		p.Move(db, nil, "02")
 
 		game, err = p.CurrentGame(db)
 		AssertNoError(t, err)
@@ -128,6 +128,24 @@ func TestPlayer(t *testing.T) {
 		_, err = p1.CurrentGame(db)
 		AssertNoError(t, err)
 		_, err = p2.CurrentGame(db)
+		AssertNoError(t, err)
+
+	})
+	t.Run("start game with 2 others", func(t *testing.T) {
+		db := NewStubDatabase()
+		p1 := NewPlayer(db, 123, "abc")
+		p2 := NewPlayer(db, 456, "def")
+		p3 := NewPlayer(db, 789, "ghi")
+
+		var err error
+		err = p1.Do(db, nil, "/new_game @"+p2.Username+" @"+p3.Username)
+		AssertNoError(t, err)
+
+		_, err = p1.CurrentGame(db)
+		AssertNoError(t, err)
+		_, err = p2.CurrentGame(db)
+		AssertNoError(t, err)
+		_, err = p3.CurrentGame(db)
 		AssertNoError(t, err)
 
 	})

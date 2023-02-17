@@ -51,7 +51,7 @@ func (p *Player) NewGame(db Memory, bot Sender, playersID ...int64) (game Game) 
 	return
 }
 
-func (p *Player) Move(db Memory, move string, bot Sender) error {
+func (p *Player) Move(db Memory, bot Sender, move string) error {
 	game, err := p.CurrentGame(db)
 	if err != nil {
 		return err
@@ -76,23 +76,30 @@ func (p *Player) Send(text string, bot Sender) {
 		log.Printf("cant send: %v", err)
 	}
 }
+func (p *Player) DoNewGame(db Memory, bot Sender, cmd string) error {
+	others := make([]string, 3)
+	var players []int64
+	n, _ := fmt.Sscanf(cmd, "/new_game @%v @%v @%v", &others[0], &others[1], &others[2])
+	others = others[:n]
+	for _, p2 := range others {
+		var id int64
+		key := fmt.Sprintf("username:%v", p2)
+		if err := db.Get(key, &id); err != nil {
+			return fmt.Errorf("cant find player @%v", p2)
+		}
+		players = append(players, id)
+	}
+	p.NewGame(db, bot, players...)
+	return nil
+}
 func (p *Player) Do(db Memory, bot Sender, cmd string) error {
 	pref := "/new_game"
+
 	if strings.HasPrefix(cmd, pref) {
-		var other string
-		var players []int64
-		if _, err := fmt.Sscanf(cmd, "/new_game @%v", &other); err == nil {
-			var id int64
-			key := fmt.Sprintf("username:%v", other)
-			if err := db.Get(key, &id); err != nil {
-				return fmt.Errorf("cant find player @%v", other)
-			}
-			players = []int64{id}
-		}
-		p.NewGame(db, bot, players...)
-		return nil
+		return p.DoNewGame(db, bot, cmd)
+	} else {
+		return p.Move(db, bot, cmd)
 	}
-	return errors.New("no such command")
 }
 func (p *Player) Get(ID int64, m Memory) error {
 	key := fmt.Sprintf("user:%d", ID)

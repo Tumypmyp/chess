@@ -54,7 +54,6 @@ func NewGame(db Memory, bot Sender, players ...int64) Game {
 		game.Description += "@" + player.Username + " "
 	}
 	db.Set(fmt.Sprintf("game:%d", ID), game)
-	//	log.Printf("game:%+v,\n%v", game, game.String())
 	game.SendStatus(db, bot)
 	return game
 }

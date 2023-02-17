@@ -20,6 +20,24 @@ func TestGame(t *testing.T) {
 			ID:            0}
 		AssertGame(t, game, want)
 	})
+	t.Run("do move", func(t *testing.T) {
+		db := NewStubDatabase()
+		player := NewPlayer(db, 12, "pl")
+		game := NewGame(db, nil, player.ID)
+		err := player.Do(db, nil, "00")
+		AssertNoError(t, err)
+
+		game, err = player.CurrentGame(db)
+		AssertNoError(t, err)
+
+		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
+		want := Game{PlayersID: []int64{12},
+			Description:   "@pl ",
+			CurrentPlayer: 0,
+			Board:         board,
+			ID:            0}
+		AssertGame(t, game, want)
+	})
 	t.Run("2 players play in turns", func(t *testing.T) {
 		db := NewStubDatabase()
 		p1 := NewPlayer(db, 12, "pl12")
@@ -27,10 +45,10 @@ func TestGame(t *testing.T) {
 		p1.NewGame(db, nil, p2.ID)
 
 		var err error
-		err = p2.Move(db, "11", nil)
+		err = p2.Move(db, nil, "11")
 		AssertError(t, err)
 
-		err = p1.Move(db, "11", nil)
+		err = p1.Move(db, nil, "11")
 		AssertNoError(t, err)
 
 	})

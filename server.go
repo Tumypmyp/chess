@@ -44,12 +44,7 @@ func main() {
 			player = NewPlayer(db, ID, update.Message.From.UserName)
 		}
 
-		switch text[0] {
-		case '/':
-			err = player.Do(db, bot, text)
-		default:
-			err = player.Move(db, text, bot)
-		}
+		err = player.Do(db, bot, text)
 		if err != nil {
 			player.Send(err.Error(), bot)
 		}
