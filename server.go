@@ -27,7 +27,7 @@ func main() {
 
 	db, err := NewDatabase()
 	if err != nil {
-		panic(err)
+		log.Fatalf("can't connect to database: %v", err)
 	}
 
 	for update := range updates {

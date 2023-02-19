@@ -16,6 +16,7 @@ func TestGame(t *testing.T) {
 		want := Game{PlayersID: []int64{12},
 			Description:   "@pl ",
 			CurrentPlayer: 0,
+			Status:        Started,
 			Board:         board,
 			ID:            0}
 		AssertGame(t, game, want)
@@ -83,8 +84,24 @@ func TestGame(t *testing.T) {
 		want.CurrentPlayer = 0
 		AssertGame(t, game, want)
 		got := game.String()
-		str := "@pl12 @pl13 \nXO-\n---\n---\n"
+		str := "@pl12 @pl13 \nStarted\nXO-\n---\n---\n"
 		AssertString(t, got, str)
 
+	})
+
+	t.Run("game status", func(t *testing.T) {
+		db := NewStubDatabase()
+		player := NewPlayer(db, 12, "pl")
+		game := NewGame(db, nil, player.ID)
+		AssertStatus(t, game.Status, Started)
+
+		err := game.Move(player.ID, "00")
+		AssertNoError(t, err)
+
+		err = game.Move(player.ID, "11")
+		AssertNoError(t, err)
+		err = game.Move(player.ID, "22")
+		AssertNoError(t, err)
+		AssertStatus(t, game.Status, Finished)
 	})
 }
