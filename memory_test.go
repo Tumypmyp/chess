@@ -69,8 +69,22 @@ func TestStubDatabase(t *testing.T) {
 			t.Errorf("got %v, want %v", got, value)
 		}
 	})
-}
 
+
+	t.Run("numbers from zero", func(t *testing.T) {
+		db := NewStubDatabase()
+		val, err := db.Incr("a")
+		AssertNoError(t, err)
+		AssertInt(t, val, 0)
+		val, err = db.Incr("a")
+		AssertNoError(t, err)
+		AssertInt(t, val, 1)
+		val, err = db.Incr("a")
+		AssertNoError(t, err)
+		AssertInt(t, val, 2)
+	})
+
+}
 func deepCopy(a, b interface{}) {
 	byt, err := json.Marshal(a)
 	if err != nil {
@@ -107,7 +121,8 @@ func (s StubDatabase) Set(key string, value interface{}) error {
 func (s StubDatabase) Incr(key string) (int64, error) {
 	val, ok := (*s.DB)[key]
 	if !ok {
-		return 0, errors.New("no value")
+		(*s.DB)[key] = int64(0)
+		return 0, nil
 	}
 	val2, ok2 := val.(int64)
 	if !ok2 {

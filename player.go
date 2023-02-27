@@ -23,12 +23,12 @@ type Player struct {
 	Username string  `json:"username"`
 }
 
-func NewPlayer(db Memory, ID PlayerID, Username string, ) Player {
+func NewPlayer(db Memory, ID PlayerID, Username string) Player {
 	p := Player{
 		ID:       ID,
 		Username: Username,
 	}
-	db.Set(fmt.Sprintf("username:%v", p.Username), p.ID)
+	db.Set(fmt.Sprintf("username:%v", p.Username), p.ID.ClientID)
 	p.Store(db)
 	return p
 }
@@ -92,11 +92,10 @@ func (p *Player) DoNewGame(db Memory, bot Sender, cmd string) error {
 		var id int64
 		key := fmt.Sprintf("username:%v", p2)
 		if err := db.Get(key, &id); err != nil {
+			// fmt.Printf("didnt find %v\n", p2)
 			return fmt.Errorf("cant find player @%v", p2)
 		}
 
-		// var p2 Player
-		// p2.Get(PlayerID{id, id}, db)
 		playersID = append(playersID, PlayerID{id, id})
 	}
 	p.NewGame(db, bot, playersID...)

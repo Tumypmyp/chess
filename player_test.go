@@ -171,7 +171,9 @@ func TestPlayer(t *testing.T) {
 		AssertBoard(t, game.Board, want)
 
 		
-		p2 := NewPlayer(db, PlayerID{123, 12345}, "pl")
+		t.Log(db.DB)
+		
+		p2 := NewPlayer(db, PlayerID{12345, 123}, "pl")
 		fmt.Println(p2)
 		_, err = p2.CurrentGame(db)
 		
@@ -180,6 +182,7 @@ func TestPlayer(t *testing.T) {
 
 		p2.NewGame(db, nil)
 
+		t.Log(db.DB)
 		fmt.Println(p2)
 		game, err = p2.CurrentGame(db)
 		fmt.Println(p2)
