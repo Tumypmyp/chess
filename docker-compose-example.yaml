@@ -1,0 +1,17 @@
+version: "3.7"
+
+services:
+  server:
+    build: .
+    environment:
+      - TELEGRAM_APITOKEN=YOUR_TOKEN_HERE
+  redis:
+    image: redis
+    restart: always
+    command: redis-server --save 20 1 
+    volumes: 
+      - cache:/data
+      
+volumes:
+  cache:
+    driver: local
