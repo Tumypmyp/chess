@@ -22,7 +22,7 @@ func AssertStatus(t testing.TB, got, want GameStatus) {
 func AssertGame(t testing.TB, got, want Game) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got %v, want %v", got, want)
+		t.Errorf("got %#v, want %#v", got, want)
 	}
 }
 

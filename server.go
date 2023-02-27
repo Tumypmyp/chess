@@ -40,8 +40,8 @@ func main() {
 
 		var player Player
 		var err error
-		if err = player.Get(ID, db); err != nil {
-			player = NewPlayer(db, ID, update.Message.From.UserName)
+		if err = player.Get(PlayerID{update.Message.Chat.ID, ID}, db); err != nil {
+			player = NewPlayer(db, PlayerID{update.Message.Chat.ID, ID}, update.Message.From.UserName)
 		}
 
 		err = player.Do(db, bot, text)

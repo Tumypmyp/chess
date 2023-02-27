@@ -44,32 +44,32 @@ func (g GameStatus) String() string {
 type Game struct {
 	ID            int64   `json:"ID"`
 	Description   string  `json:"description"`
-	PlayersID     []int64 `json:"players"`
+	PlayersID       []PlayerID `json:"players"`
 	CurrentPlayer int
 	Status        GameStatus
 	Board         [3][3]Mark `json:"board"`
 }
 
-func NewGame(db Memory, bot Sender, players ...int64) Game {
+func NewGame(db Memory, bot Sender, playersID ...PlayerID) Game {
 	ID, err := db.Incr("gameID")
 	if err != nil {
 		// log.Printf("cant restore id %v", err)
 	}
 	game := Game{
-		PlayersID: players,
+		PlayersID: playersID,
 		ID:        ID,
 	}
-	for _, id := range players {
-		var player Player
-		err := player.Get(id, db)
+	for _, id := range playersID {
+		var p Player
+		err := p.Get(id, db)
 		if err != nil {
 			log.Println("no such player", id)
 		}
 		//log.Println("player", player)
-		player.SetNewGame(ID)
-		player.Store(db)
+		p.AddNewGame(ID)
+		p.Store(db)
 
-		game.Description += "@" + player.Username + " "
+		game.Description += "@" + p.Username + " "
 	}
 	db.Set(fmt.Sprintf("game:%d", ID), game)
 	game.SendStatus(db, bot)
@@ -87,27 +87,29 @@ func (g Game) String() (s string) {
 	}
 	return
 }
-
+var (
+    placeNotEmpty = errors.New("place is not empty")
+)
 // Returns false if a point out of boundary
-func inBoundary(g Game, x, y int) (bool, error) {
+func checkBoundary(g Game, x, y int) (error) {
 	if x < 0 || len(g.Board) <= x {
-		return false, errors.New("x coordinate out of bounds")
+		return errors.New("x coordinate out of bounds")
 	}
 	if y < 0 || len(g.Board[x]) <= y {
-		return false, errors.New("y coordinate out of bounds")
+		return errors.New("y coordinate out of bounds")
 	}
 	if g.Board[x][y] != Undefined {
-		return false, errors.New("this place is not empty")
+		return placeNotEmpty
 	}
-	return true, nil
+	return nil
 }
 
-func (g *Game) Move(playerID int64, move string) error {
+func (g *Game) Move(player Player, move string) error {
 
 	if g.Status == Finished {
 		return errors.New("the game is finished")
 	}
-	if playerID != g.PlayersID[g.CurrentPlayer] {
+	if player.ID != g.PlayersID[g.CurrentPlayer] {
 		return errors.New("not your turn")
 	}
 
@@ -116,7 +118,7 @@ func (g *Game) Move(playerID int64, move string) error {
 	}
 	x := int(move[0] - '0')
 	y := int(move[1] - '0')
-	if _, err := inBoundary(*g, x, y); err != nil {
+	if err := checkBoundary(*g, x, y); err != nil {
 		return fmt.Errorf("illegal move: %w", err)
 	}
 	g.Board[x][y] = Mark(g.CurrentPlayer + 1)
@@ -147,10 +149,10 @@ func (g *Game) UpdateStatus() {
 	}
 
 }
-func (g *Game) SendStatus(db Memory, bot Sender) {
+func (g Game) SendStatus(db Memory, bot Sender) {
 	for _, id := range g.PlayersID {
-		var player Player
-		player.Get(id, db)
-		player.Send(g.String(), bot)
+		var p Player
+		p.Get(id, db)
+		p.Send(g.String(), bot)
 	}
 }

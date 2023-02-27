@@ -12,14 +12,18 @@ import (
 type Sender interface {
 	Send(tgbotapi.Chattable) (tgbotapi.Message, error)
 }
-
-type Player struct {
-	GamesID  []int64 `json:"gamesID"`
-	Username string  `json:"username"`
-	ID       int64   `json:"ID"`
+type PlayerID struct {
+	ChatID int64
+	ClientID int64
 }
 
-func NewPlayer(db Memory, ID int64, Username string) Player {
+type Player struct {
+	ID       PlayerID
+	GamesID  []int64 `json:"gamesID"`
+	Username string  `json:"username"`
+}
+
+func NewPlayer(db Memory, ID PlayerID, Username string, ) Player {
 	p := Player{
 		ID:       ID,
 		Username: Username,
@@ -38,25 +42,27 @@ func (p *Player) CurrentGame(db Memory) (game Game, err error) {
 	return
 }
 
-func (p *Player) SetNewGame(gameID int64) {
+func (p *Player) AddNewGame(gameID int64) {
 	p.GamesID = append(p.GamesID, gameID)
 }
 
-func (p *Player) NewGame(db Memory, bot Sender, playersID ...int64) (game Game) {
+func (p *Player) NewGame(db Memory, bot Sender, playersID ...PlayerID) (game Game) {
 
-	playersID = append([]int64{p.ID}, playersID...)
+	playersID = append([]PlayerID{p.ID}, playersID...)
 
 	game = NewGame(db, bot, playersID...)
 	p.Get(p.ID, db)
 	return
 }
+// add p.Update()
+
 
 func (p *Player) Move(db Memory, bot Sender, move string) error {
 	game, err := p.CurrentGame(db)
 	if err != nil {
 		return err
 	}
-	if err = game.Move(p.ID, move); err != nil {
+	if err = game.Move(*p, move); err != nil {
 		return err
 	}
 	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
@@ -66,8 +72,8 @@ func (p *Player) Move(db Memory, bot Sender, move string) error {
 	return nil
 }
 
-func (p *Player) Send(text string, bot Sender) {
-	msg := tgbotapi.NewMessage(p.ID, text)
+func (p Player) Send(text string, bot Sender) {
+	msg := tgbotapi.NewMessage(p.ID.ChatID, text)
 
 	if bot == nil {
 		return
@@ -78,18 +84,22 @@ func (p *Player) Send(text string, bot Sender) {
 }
 func (p *Player) DoNewGame(db Memory, bot Sender, cmd string) error {
 	others := make([]string, 3)
-	var players []int64
 	n, _ := fmt.Sscanf(cmd, "/new_game @%v @%v @%v", &others[0], &others[1], &others[2])
 	others = others[:n]
+
+	var playersID []PlayerID
 	for _, p2 := range others {
 		var id int64
 		key := fmt.Sprintf("username:%v", p2)
 		if err := db.Get(key, &id); err != nil {
 			return fmt.Errorf("cant find player @%v", p2)
 		}
-		players = append(players, id)
+
+		// var p2 Player
+		// p2.Get(PlayerID{id, id}, db)
+		playersID = append(playersID, PlayerID{id, id})
 	}
-	p.NewGame(db, bot, players...)
+	p.NewGame(db, bot, playersID...)
 	return nil
 }
 func (p *Player) Do(db Memory, bot Sender, cmd string) error {
@@ -101,8 +111,8 @@ func (p *Player) Do(db Memory, bot Sender, cmd string) error {
 		return p.Move(db, bot, cmd)
 	}
 }
-func (p *Player) Get(ID int64, m Memory) error {
-	key := fmt.Sprintf("user:%d", ID)
+func (p *Player) Get(ID PlayerID, m Memory) error {
+	key := fmt.Sprintf("chat:%duser:%d", ID.ChatID, ID.ClientID)
 	if err := m.Get(key, p); err != nil {
 		return fmt.Errorf("can not get player by id: %w", err)
 	}
@@ -110,9 +120,10 @@ func (p *Player) Get(ID int64, m Memory) error {
 }
 
 // Update Memory with new value of a player
-func (p Player) Store(m Memory) {
-	key := fmt.Sprintf("user:%d", p.ID)
+func (p Player) Store(m Memory) error {
+	key := fmt.Sprintf("chat:%duser:%d", p.ID.ChatID, p.ID.ClientID)
 	if err := m.Set(key, p); err != nil {
-		fmt.Println("error when setting pleyer")
+		return fmt.Errorf("error when storing player %v: %w", p, err)
 	}
+	return nil
 }

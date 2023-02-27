@@ -13,21 +13,20 @@ func TestMemory(t *testing.T) {
 	t.Run("get", func(t *testing.T) {
 		db := NewStubDatabase()
 		var player Player
-		err := player.Get(12, db)
+		err := player.Get(PlayerID{12,12}, db)
 		AssertError(t, err)
-		player = NewPlayer(db, 12, "abc")
+		player = NewPlayer(db, PlayerID{12,12}, "abc")
 
-		t.Log(player)
-		if player.ID != 12 {
-			t.Errorf("got %v, want %v", player.ID, 12)
+		if player.ID.ChatID != 12 {
+			t.Errorf("got %v, want %v", player.ID, PlayerID{12,12})
 		}
 	})
 	t.Run("set/get", func(t *testing.T) {
 		mem := NewStubDatabase()
-		p := Player{ID: 1234}
+		p := Player{ID: PlayerID{1234,1234}}
 		p.Store(mem)
 		var got Player
-		got.Get(1234, mem)
+		got.Get(PlayerID{1234,1234}, mem)
 		if !reflect.DeepEqual(p, got) {
 			t.Errorf("got %v, want %v", got, p)
 		}
@@ -47,7 +46,7 @@ func TestStubDatabase(t *testing.T) {
 	t.Run("player", func(t *testing.T) {
 		memory := NewStubDatabase()
 		key := "abcd"
-		value := Player{ID: 1234}
+		value := Player{ID: PlayerID{1234,1234}}
 		memory.Set(key, value)
 		t.Logf("mem: %v", *memory.DB)
 
@@ -60,7 +59,7 @@ func TestStubDatabase(t *testing.T) {
 	t.Run("player with game", func(t *testing.T) {
 		memory := NewStubDatabase()
 		key := "abcd"
-		value := Player{ID: 1234, GamesID: []int64{12}}
+		value := Player{ID: PlayerID{1234,1234}, GamesID: []int64{12}}
 
 		memory.Set(key, value)
 
