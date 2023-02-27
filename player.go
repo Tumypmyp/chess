@@ -109,7 +109,8 @@ func (p *Player) Get(ID int64, m Memory) error {
 	return nil
 }
 
-func (p *Player) Store(m Memory) {
+// Update Memory with new value of a player
+func (p Player) Store(m Memory) {
 	key := fmt.Sprintf("user:%d", p.ID)
 	if err := m.Set(key, p); err != nil {
 		fmt.Println("error when setting pleyer")

@@ -19,7 +19,7 @@ type Database struct {
 	client *redis.Client
 }
 
-func NewDatabase() (Memory, error) {
+func NewDatabase() (Database, error) {
 	db := Database{redis.NewClient(&redis.Options{
 		Addr:     "redis:6379",
 		Password: "",

@@ -35,7 +35,7 @@ func main() {
 			continue
 		}
 
-		ID := update.Message.Chat.ID
+		ID := update.Message.From.ID
 		text := update.Message.Text
 
 		var player Player

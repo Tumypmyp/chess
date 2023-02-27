@@ -76,7 +76,8 @@ func NewGame(db Memory, bot Sender, players ...int64) Game {
 	return game
 }
 
-func (g *Game) String() (s string) {
+// Returns string representation of a game
+func (g Game) String() (s string) {
 	s = g.Description + "\n" + g.Status.String() + "\n"
 	for _, row := range g.Board {
 		for _, val := range row {
@@ -87,7 +88,8 @@ func (g *Game) String() (s string) {
 	return
 }
 
-func (g *Game) legalMove(x, y int) (bool, error) {
+// Returns false if a point out of boundary
+func inBoundary(g Game, x, y int) (bool, error) {
 	if x < 0 || len(g.Board) <= x {
 		return false, errors.New("x coordinate out of bounds")
 	}
@@ -114,7 +116,7 @@ func (g *Game) Move(playerID int64, move string) error {
 	}
 	x := int(move[0] - '0')
 	y := int(move[1] - '0')
-	if _, err := g.legalMove(x, y); err != nil {
+	if _, err := inBoundary(*g, x, y); err != nil {
 		return fmt.Errorf("illegal move: %w", err)
 	}
 	g.Board[x][y] = Mark(g.CurrentPlayer + 1)
@@ -122,9 +124,11 @@ func (g *Game) Move(playerID int64, move string) error {
 	g.UpdateStatus()
 	return nil
 }
+
 func allSame(v [3]Mark) bool {
 	return v[0] == v[1] && v[1] == v[2] && v[0] != Undefined
 }
+
 func (g *Game) UpdateStatus() {
 	if allSame([3]Mark{g.Board[0][0], g.Board[1][1], g.Board[2][2]}) {
 		g.Status = Finished
