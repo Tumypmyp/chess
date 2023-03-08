@@ -36,7 +36,7 @@ func NewPlayer(db Memory, ID PlayerID, Username string) Player {
 func (p *Player) CurrentGame(db Memory) (game Game, err error) {
 	p.Get(p.ID, db)
 	if len(p.GamesID) == 0 {
-		return game, errors.New("no current game,\ntry: /new_game")
+		return game, errors.New("no current game,\ntry: /newgame")
 	}
 	err = db.Get(fmt.Sprintf("game:%d", p.GamesID[len(p.GamesID)-1]), &game)
 	return
@@ -46,11 +46,11 @@ func (p *Player) AddNewGame(gameID int64) {
 	p.GamesID = append(p.GamesID, gameID)
 }
 
-func (p *Player) NewGame(db Memory, bot Sender, playersID ...PlayerID) (game Game) {
+func (p *Player) NewGame(db Memory, bot Sender, players ...Player) (game Game) {
 
-	playersID = append([]PlayerID{p.ID}, playersID...)
+	players = append([]Player{*p}, players...)
 
-	game = NewGame(db, bot, playersID...)
+	game = NewGame(db, bot, players...)
 	p.Get(p.ID, db)
 	return
 }
@@ -84,25 +84,31 @@ func (p Player) Send(text string, bot Sender) {
 }
 func (p *Player) DoNewGame(db Memory, bot Sender, cmd string) error {
 	others := make([]string, 3)
-	n, _ := fmt.Sscanf(cmd, "/new_game @%v @%v @%v", &others[0], &others[1], &others[2])
+	n, _ := fmt.Sscanf(cmd, "/newgame @%v @%v @%v", &others[0], &others[1], &others[2])
 	others = others[:n]
 
-	var playersID []PlayerID
+	var players []Player
 	for _, p2 := range others {
-		var id int64
+		var clientID int64
 		key := fmt.Sprintf("username:%v", p2)
-		if err := db.Get(key, &id); err != nil {
+		if err := db.Get(key, &clientID); err != nil {
 			// fmt.Printf("didnt find %v\n", p2)
 			return fmt.Errorf("cant find player @%v", p2)
 		}
+		id := PlayerID{p.ID.ChatID, clientID}
 
-		playersID = append(playersID, PlayerID{id, id})
+		var player Player
+		if err := player.Get(id, db); err != nil {
+			id.ChatID = clientID
+			player.Get(id, db)
+		}
+		players = append(players, player)
 	}
-	p.NewGame(db, bot, playersID...)
+	p.NewGame(db, bot, players...)
 	return nil
 }
 func (p *Player) Do(db Memory, bot Sender, cmd string) error {
-	pref := "/new_game"
+	pref := "/newgame"
 
 	if strings.HasPrefix(cmd, pref) {
 		return p.DoNewGame(db, bot, cmd)

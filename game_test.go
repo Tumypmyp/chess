@@ -8,7 +8,7 @@ func TestGame(t *testing.T) {
 	t.Run("move", func(t *testing.T) {
 		db := NewStubDatabase()
 		player := NewPlayer(db, PlayerID{12,12}, "pl")
-		game := NewGame(db, nil, player.ID)
+		game := NewGame(db, nil, player)
 		err := game.Move(player, "00")
 		AssertNoError(t, err)
 
@@ -25,7 +25,7 @@ func TestGame(t *testing.T) {
 	t.Run("do move", func(t *testing.T) {
 		db := NewStubDatabase()
 		player := NewPlayer(db, PlayerID{12,12}, "pl")
-		game := NewGame(db, nil, player.ID)
+		game := NewGame(db, nil, player)
 		err := player.Do(db, nil, "00")
 		AssertNoError(t, err)
 
@@ -44,7 +44,7 @@ func TestGame(t *testing.T) {
 		db := NewStubDatabase()
 		p1 := NewPlayer(db, PlayerID{12,12}, "pl12")
 		p2 := NewPlayer(db, PlayerID{13,13}, "pl13")
-		p1.NewGame(db, nil, p2.ID)
+		p1.NewGame(db, nil, p2)
 
 		var err error
 		err = p2.Move(db, nil, "11")
@@ -59,7 +59,7 @@ func TestGame(t *testing.T) {
 		db := mem
 		p1 := NewPlayer(db, PlayerID{12,12}, "pl12")
 		p2 := NewPlayer(db, PlayerID{13,13}, "pl13")
-		p1.NewGame(db, nil, p2.ID)
+		p1.NewGame(db, nil, p2)
 
 		p1.Get(p1.ID, db)
 		p2.Get(p2.ID, db)
@@ -93,7 +93,7 @@ func TestGame(t *testing.T) {
 	t.Run("game status", func(t *testing.T) {
 		db := NewStubDatabase()
 		player := NewPlayer(db, PlayerID{12,12}, "pl")
-		game := NewGame(db, nil, player.ID)
+		game := NewGame(db, nil, player)
 		AssertStatus(t, game.Status, Started)
 
 		err := game.Move(player, "00")

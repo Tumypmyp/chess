@@ -82,7 +82,7 @@ func TestPlayer(t *testing.T) {
 		id := PlayerID{123456, 123456}
 		p := NewPlayer(db, id, "pl")
 
-		NewGame(db, nil, p.ID)
+		NewGame(db, nil, p)
 		_, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
@@ -94,7 +94,7 @@ func TestPlayer(t *testing.T) {
 		p := NewPlayer(db, PlayerID{123, 123}, "pl")
 
 		var err error
-		err = p.Do(db, nil, "/new_game")
+		err = p.Do(db, nil, "/newgame")
 		AssertNoError(t, err)
 
 		p.Get(id, db)
@@ -110,7 +110,7 @@ func TestPlayer(t *testing.T) {
 		p2 := NewPlayer(db, PlayerID{456, 456}, "def")
 
 		var err error
-		err = p1.Do(db, nil, "/new_game @"+p2.Username)
+		err = p1.Do(db, nil, "/newgame @"+p2.Username)
 		AssertNoError(t, err)
 
 		_, err = p1.CurrentGame(db)
@@ -124,7 +124,7 @@ func TestPlayer(t *testing.T) {
 		p1 := NewPlayer(db, PlayerID{123, 123}, "abc")
 		p2 := NewPlayer(db, PlayerID{456, 456}, "def")
 
-		p1.NewGame(db, nil, p2.ID)
+		p1.NewGame(db, nil, p2)
 
 		var err error
 		_, err = p1.CurrentGame(db)
@@ -141,7 +141,7 @@ func TestPlayer(t *testing.T) {
 		
 
 		var err error
-		err = p1.Do(db, nil, "/new_game @"+p2.Username+" @"+p3.Username)
+		err = p1.Do(db, nil, "/newgame @"+p2.Username+" @"+p3.Username)
 		AssertNoError(t, err)
 
 		_, err = p1.CurrentGame(db)

@@ -50,20 +50,19 @@ type Game struct {
 	Board         [3][3]Mark `json:"board"`
 }
 
-func NewGame(db Memory, bot Sender, playersID ...PlayerID) Game {
+func NewGame(db Memory, bot Sender, players ...Player) Game {
 	ID, err := db.Incr("gameID")
 	if err != nil {
 		// log.Printf("cant restore id %v", err)
 	}
 	game := Game{
-		PlayersID: playersID,
 		ID:        ID,
 	}
-	for _, id := range playersID {
-		var p Player
-		err := p.Get(id, db)
+	for _, p := range players {
+		game.PlayersID = append(game.PlayersID, p.ID)
+		err := p.Get(p.ID, db)
 		if err != nil {
-			log.Println("no such player", id)
+			log.Println("no such player", p.ID)
 		}
 		//log.Println("player", player)
 		p.AddNewGame(ID)
