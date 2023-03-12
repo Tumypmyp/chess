@@ -1,19 +1,24 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	pb "github.com/tumypmyp/chess/leaderboard"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Sender interface {
 	Send(tgbotapi.Chattable) (tgbotapi.Message, error)
 }
 type PlayerID struct {
-	ChatID int64
+	ChatID   int64
 	ClientID int64
 }
 
@@ -54,8 +59,8 @@ func (p *Player) NewGame(db Memory, bot Sender, players ...Player) (game Game) {
 	p.Get(p.ID, db)
 	return
 }
-// add p.Update()
 
+// add p.Update()
 
 func (p *Player) Move(db Memory, bot Sender, move string) error {
 	game, err := p.CurrentGame(db)
@@ -107,11 +112,35 @@ func (p *Player) DoNewGame(db Memory, bot Sender, cmd string) error {
 	p.NewGame(db, bot, players...)
 	return nil
 }
+func (p *Player) getLeaderboard(bot Sender) error {
+	conn, err := grpc.Dial("localhost:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := pb.NewLeaderboardClient(conn)
+
+	// Contact the server and print out its response.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	r, err := c.GetLeaderboard(ctx, &pb.Player{Name: "Vova"})
+	if err != nil {
+		return fmt.Errorf("could not get leaderboard")
+
+	}
+	log.Printf("Greeting: %s", r.GetS())
+	p.Send(r.GetS(), bot)
+	return nil
+}
+
 func (p *Player) Do(db Memory, bot Sender, cmd string) error {
 	pref := "/newgame"
+	leaderboard := "/leaderboard"
 
 	if strings.HasPrefix(cmd, pref) {
 		return p.DoNewGame(db, bot, cmd)
+	} else if strings.HasPrefix(cmd, leaderboard) {
+		return p.getLeaderboard(bot)
 	} else {
 		return p.Move(db, bot, cmd)
 	}
