@@ -9,7 +9,7 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	pb "github.com/tumypmyp/chess/leaderboard"
+	"github.com/tumypmyp/chess/leaderboard"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -113,17 +113,17 @@ func (p *Player) DoNewGame(db Memory, bot Sender, cmd string) error {
 	return nil
 }
 func (p *Player) getLeaderboard(bot Sender) error {
-	conn, err := grpc.Dial("localhost:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial("leaderboard:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := pb.NewLeaderboardClient(conn)
+	c := leaderboard.NewLeaderboardClient(conn)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.GetLeaderboard(ctx, &pb.Player{Name: "Vova"})
+	r, err := c.GetLeaderboard(ctx, &leaderboard.Player{Name: "Vova"})
 	if err != nil {
 		return fmt.Errorf("could not get leaderboard")
 
