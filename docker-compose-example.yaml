@@ -2,9 +2,19 @@ version: "3.7"
 
 services:
   server:
-    build: .
+    image: tumypmyp/chess-bot
+    build: 
+      context: .
+      dockerfile: bot_service/Dockerfile
     environment:
-      - TELEGRAM_APITOKEN=YOUR_TOKEN_HERE
+      - TELEGRAM_APITOKEN=YOUR_TOKEN
+      
+  leaderboard:
+    image: tumypmyp/chess-leaderboard
+    build:
+      context: .
+      dockerfile: leaderboard_service/Dockerfile
+  
   redis:
     image: redis
     restart: always
