@@ -1,5 +1,5 @@
 
-name: Deploy Leaderboard
+name: Deploy Bot
 
 on:
   push:
