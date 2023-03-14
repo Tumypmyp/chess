@@ -4,10 +4,13 @@ WORKDIR /chess
 # Copy the application source code.
 COPY ./ ./
 
-RUN go build ./leaderboard
-RUN go build -o /server ./bot_service
-ENTRYPOINT [ "/server" ]
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+	go build -o /go/bin/server ./bot_service
 
-# FROM alpine:latest
-# COPY --from=build /server /server
-# ENTRYPOINT [ "/server" ]
+ENTRYPOINT [ "/go/bin/server" ]
+
+FROM golang:alpine
+RUN apk --no-cache add ca-certificates
+
+COPY --from=build /go/bin/server /go/bin/server
+ENTRYPOINT [ "/go/bin/server" ]

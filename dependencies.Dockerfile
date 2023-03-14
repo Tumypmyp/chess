@@ -1,7 +1,4 @@
 FROM golang:1.20 AS dep
-# Add the module files and download dependencies.
-
-# ENV GO111MODULE=on
 
 WORKDIR /chess
 
