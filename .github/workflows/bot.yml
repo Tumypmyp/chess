@@ -1,0 +1,33 @@
+
+name: Deploy Leaderboard
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'leaderboard/**'
+      - 'bot_service/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'leaderboard/**'
+      - 'bot_service/**'
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+
+    - name: Build bot
+      run: go build -o ./service -v ./bot_service
+
+    - name: Test bot
+      run: go test -v ./bot_service
+      

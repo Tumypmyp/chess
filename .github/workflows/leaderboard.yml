@@ -1,13 +1,17 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: Go
+name: Deploy Leaderboard
 
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'leaderboard/**'
+      - 'leaderboard_service/**'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'leaderboard/**'
+      - 'leaderboard_service/**'
 
 jobs:
 
@@ -20,13 +24,6 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: 1.19
-
-    - name: Build bot
-      run: go build -o ./service -v ./bot_service
-
-    - name: Test bot
-      run: go test -v ./bot_service
-      
       
     - name: Build leaderboard
       run: go build -o ./service -v ./leaderboard_service
