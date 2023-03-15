@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: bot_service/Dockerfile
     environment:
-      - TELEGRAM_APITOKEN=YOUR_TOKEN
+      - TELEGRAM_APITOKEN=0123:TelegramTOKEN
       
   leaderboard:
     image: tumypmyp/chess-leaderboard

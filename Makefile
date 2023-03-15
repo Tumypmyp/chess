@@ -4,7 +4,7 @@ build-dependencies:
 	docker build -t dependencies -f ./dependencies.Dockerfile .
 
 build: build-dependencies
-	docker-compose build
+	docker-compose -f docker-compose.yaml build
 
 run:
-	docker-compose up
+	docker-compose -f docker-compose.yaml up

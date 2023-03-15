@@ -1,4 +1,4 @@
-FROM golang:1.20 AS dep
+FROM golang:1.20 AS dependencies
 
 WORKDIR /chess
 
