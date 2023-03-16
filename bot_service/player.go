@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -41,10 +40,14 @@ func NewPlayer(db memory.Memory, ID PlayerID, Username string) Player {
 	return p
 }
 
+type NoCurrentGameError struct{}
+func (n NoCurrentGameError) Error() string { return "no current game,\ntry: /newgame" }
+
+
 func (p *Player) CurrentGame(db memory.Memory) (game Game, err error) {
 	p.Get(p.ID, db)
 	if len(p.GamesID) == 0 {
-		return game, errors.New("no current game,\ntry: /newgame")
+		return game, NoCurrentGameError{}
 	}
 	err = db.Get(fmt.Sprintf("game:%d", p.GamesID[len(p.GamesID)-1]), &game)
 	return
@@ -90,7 +93,6 @@ func (p Player) Send(text string, bot Sender) {
 		log.Printf("cant send: %v", err)
 	}
 }
-
 
 func (p *Player) DoNewGame(db memory.Memory, bot Sender, cmd string) error {
 	others := make([]string, 3)
@@ -138,7 +140,7 @@ func (p *Player) getLeaderboard(bot Sender) error {
 	return nil
 }
 
-func (p *Player) Do(db memory.Memory, bot Sender, cmd string) error {
+func (p *Player) Do2(db memory.Memory, bot Sender, cmd string) error {
 	pref := "/newgame"
 	leaderboard := "/leaderboard"
 
@@ -149,6 +151,13 @@ func (p *Player) Do(db memory.Memory, bot Sender, cmd string) error {
 	} else {
 		return p.Move(db, bot, cmd)
 	}
+}
+func (p *Player) Do(db memory.Memory, bot Sender, cmd string) error {
+	err := p.Do2(db, bot, cmd)
+	if err != nil {
+		p.Send(err.Error(), bot)
+	}
+	return err
 }
 
 
@@ -168,5 +177,3 @@ func (p Player) Store(m memory.Memory) error {
 	}
 	return nil
 }
-
-

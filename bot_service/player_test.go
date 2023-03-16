@@ -2,6 +2,7 @@ package main
 
 import (
 	"testing"
+
 	"github.com/tumypmyp/chess/memory"
 )
 
@@ -185,5 +186,21 @@ func TestPlayer(t *testing.T) {
 		AssertNoError(t, err)
 		want = [3][3]Mark{{0, 0, 1}, {0, 0, 0}, {0, 0, 0}}
 		AssertBoard(t, game.Board, want)
+	})
+}
+
+
+
+
+func TestPlayerResponses(t *testing.T) {
+	t.Run("start player", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		bot := NewStubBot()
+
+		p := NewPlayer(db, PlayerID{123, 123}, "pl")
+		err := p.Do(db, bot, "12")
+		AssertError(t, err)
+		AssertString(t, bot.Read(), NoCurrentGameError{}.Error())
+		
 	})
 }

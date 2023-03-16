@@ -41,17 +41,15 @@ func main() {
 			ClientID: update.Message.From.ID,
 		}
 		text := update.Message.Text
-
+		// IsCommand
 		var player Player
 		var err error
 		if err = player.Get(ID, db); err != nil {
 			player = NewPlayer(db, ID, update.Message.From.UserName)
 		}
 
-		err = player.Do(db, bot, text)
-		if err != nil {
-			player.Send(err.Error(), bot)
-		}
+		player.Do(db, bot, text)
+		
 	}
 
 }
