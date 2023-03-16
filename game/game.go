@@ -63,10 +63,10 @@ func NewGame(db memory.Memory, bot Sender, players ...PlayerID) Game {
 	}
 	for _, p := range players {
 		game.PlayersID = append(game.PlayersID, p)
-		
+
 		game.Description += "@" + string(p.ChatID) + " "
 	}
-	
+
 	// for _, p := range players {
 	// 	err := p.Get(p.ID, db)
 	// 	if err != nil {
@@ -89,9 +89,27 @@ func (g Game) SendStatus(db memory.Memory, bot Sender) {
 	}
 }
 
+var numericKeyboard = tgbotapi.NewInlineKeyboardMarkup(
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("00", "00"),
+		tgbotapi.NewInlineKeyboardButtonData("01", "01"),
+		tgbotapi.NewInlineKeyboardButtonData("02", "02"),
+	),
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("10", "11"),
+		tgbotapi.NewInlineKeyboardButtonData("11", "11"),
+		tgbotapi.NewInlineKeyboardButtonData("12", "12"),
+	),
+	tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("20", "21"),
+		tgbotapi.NewInlineKeyboardButtonData("21", "21"),
+		tgbotapi.NewInlineKeyboardButtonData("22", "22"),
+	),
+)
+
 func Send(id PlayerID, text string, bot Sender) {
 	msg := tgbotapi.NewMessage(id.ChatID, text)
-
+	msg.ReplyMarkup = numericKeyboard
 	if bot == nil {
 		return
 	}
