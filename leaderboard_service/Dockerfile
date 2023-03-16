@@ -4,6 +4,7 @@ WORKDIR /chess
 # Copy the application source code.
 COPY leaderboard_service/*.go leaderboard_service/
 COPY leaderboard/*.go leaderboard/
+COPY memory/*.go memory/
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
 	go build -o /go/bin/server ./leaderboard_service
