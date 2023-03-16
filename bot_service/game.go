@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/tumypmyp/chess/memory"
 )
 
@@ -43,9 +45,9 @@ func (g GameStatus) String() string {
 }
 
 type Game struct {
-	ID            int64   `json:"ID"`
-	Description   string  `json:"description"`
-	PlayersID       []PlayerID `json:"players"`
+	ID            int64      `json:"ID"`
+	Description   string     `json:"description"`
+	PlayersID     []PlayerID `json:"players"`
 	CurrentPlayer int
 	Status        GameStatus
 	Board         [3][3]Mark `json:"board"`
@@ -57,7 +59,7 @@ func NewGame(db memory.Memory, bot Sender, players ...Player) Game {
 		// log.Printf("cant restore id %v", err)
 	}
 	game := Game{
-		ID:        ID,
+		ID: ID,
 	}
 	for _, p := range players {
 		game.PlayersID = append(game.PlayersID, p.ID)
@@ -72,19 +74,27 @@ func NewGame(db memory.Memory, bot Sender, players ...Player) Game {
 		game.Description += "@" + p.Username + " "
 	}
 	db.Set(fmt.Sprintf("game:%d", ID), game)
-	game.SendStatus(db, bot)
+
 	return game
 }
 
 // sends status to all players
 func (g Game) SendStatus(db memory.Memory, bot Sender) {
 	for _, id := range g.PlayersID {
-		var p Player
-		p.Get(id, db)
-		p.Send(g.String(), bot)
+		Send(id, g.String(), bot)
 	}
 }
 
+func Send(id PlayerID, text string, bot Sender) {
+	msg := tgbotapi.NewMessage(id.ChatID, text)
+
+	if bot == nil {
+		return
+	}
+	if _, err := bot.Send(msg); err != nil {
+		log.Printf("cant send: %v", err)
+	}
+}
 
 // Returns string representation of a game
 func (g Game) String() (s string) {
@@ -97,12 +107,13 @@ func (g Game) String() (s string) {
 	}
 	return
 }
+
 var (
-    placeNotEmpty = errors.New("place is not empty")
+	placeNotEmpty = errors.New("place is not empty")
 )
 
 // Returns false if a point out of boundary
-func checkBoundary(g Game, x, y int) (error) {
+func checkBoundary(g Game, x, y int) error {
 	if x < 0 || len(g.Board) <= x {
 		return errors.New("x coordinate out of bounds")
 	}
@@ -161,5 +172,3 @@ func (g *Game) UpdateStatus() {
 	}
 
 }
-
-

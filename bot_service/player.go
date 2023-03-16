@@ -62,6 +62,7 @@ func (p *Player) NewGame(db memory.Memory, bot Sender, players ...Player) (game 
 	players = append([]Player{*p}, players...)
 
 	game = NewGame(db, bot, players...)
+	game.SendStatus(db, bot)
 	p.Get(p.ID, db)
 	return
 }
@@ -94,7 +95,7 @@ func (p Player) Send(text string, bot Sender) {
 	}
 }
 
-func (p *Player) DoNewGame(db memory.Memory, bot Sender, cmd string) error {
+func (p *Player) DoNewGame(db memory.Memory, bot Sender, cmd string) (err error) {
 	others := make([]string, 3)
 	n, _ := fmt.Sscanf(cmd, "/newgame @%v @%v @%v", &others[0], &others[1], &others[2])
 	others = others[:n]
@@ -103,8 +104,7 @@ func (p *Player) DoNewGame(db memory.Memory, bot Sender, cmd string) error {
 	for _, p2 := range others {
 		var clientID int64
 		key := fmt.Sprintf("username:%v", p2)
-		if err := db.Get(key, &clientID); err != nil {
-			// fmt.Printf("didnt find %v\n", p2)
+		if err = db.Get(key, &clientID); err != nil {
 			return fmt.Errorf("cant find player @%v", p2)
 		}
 		id := PlayerID{p.ID.ChatID, clientID}
@@ -117,7 +117,7 @@ func (p *Player) DoNewGame(db memory.Memory, bot Sender, cmd string) error {
 		players = append(players, player)
 	}
 	p.NewGame(db, bot, players...)
-	return nil
+	return 
 }
 func (p *Player) getLeaderboard(bot Sender) error {
 	conn, err := grpc.Dial("leaderboard:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
