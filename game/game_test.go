@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
 	"testing"
@@ -53,7 +53,6 @@ func TestGame(t *testing.T) {
 
 		err = p1.Move(db, nil, "11")
 		AssertNoError(t, err)
-
 	})
 	t.Run("2 players", func(t *testing.T) {
 		mem := memory.NewStubDatabase()

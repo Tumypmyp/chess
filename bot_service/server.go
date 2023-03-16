@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/tumypmyp/chess/memory"
+	"github.com/tumypmyp/chess/game"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -36,7 +37,7 @@ func main() {
 			continue
 		}
 
-		ID := memory.PlayerID{
+		ID := game.PlayerID{
 			ChatID:   update.Message.Chat.ID,
 			ClientID: update.Message.From.ID,
 		}

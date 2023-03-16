@@ -1,10 +1,9 @@
-package main
+package game
 
 import (
 	"reflect"
 	"testing"
 	
-	"github.com/tumypmyp/chess/game"
 )
 
 func AssertInt(t testing.TB, got, want int64) {
@@ -14,14 +13,14 @@ func AssertInt(t testing.TB, got, want int64) {
 	}
 }
 
-func AssertStatus(t testing.TB, got, want game.GameStatus) {
+func AssertStatus(t testing.TB, got, want GameStatus) {
 	t.Helper()
 	if got != want {
 		t.Errorf("got %v, want %v", got, want)
 	}
 }
 
-func AssertGame(t testing.TB, got, want game.Game) {
+func AssertGame(t testing.TB, got, want Game) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %#v, want %#v", got, want)
@@ -48,7 +47,7 @@ func AssertError(t testing.TB, err error) {
 	}
 }
 
-func AssertBoard(t testing.TB, got, want [3][3]game.Mark) {
+func AssertBoard(t testing.TB, got, want [3][3]Mark) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v, want %v", got, want)

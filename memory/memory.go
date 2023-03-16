@@ -5,12 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/redis/go-redis/v9"
+	
 )
 
-type PlayerID struct {
-	ChatID   int64
-	ClientID int64
-}
 
 
 var ctx = context.Background()

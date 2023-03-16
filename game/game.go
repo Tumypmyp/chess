@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
 	"errors"
@@ -47,13 +47,13 @@ func (g GameStatus) String() string {
 type Game struct {
 	ID            int64      `json:"ID"`
 	Description   string     `json:"description"`
-	PlayersID     []memory.PlayerID `json:"players"`
+	PlayersID     []PlayerID `json:"players"`
 	CurrentPlayer int
 	Status        GameStatus
 	Board         [3][3]Mark `json:"board"`
 }
 
-func NewGame(db memory.Memory, bot Sender, players ...Player) Game {
+func NewGame(db memory.Memory, bot Sender, players ...PlayerID) Game {
 	ID, err := db.Incr("gameID")
 	if err != nil {
 		// log.Printf("cant restore id %v", err)
@@ -62,17 +62,21 @@ func NewGame(db memory.Memory, bot Sender, players ...Player) Game {
 		ID: ID,
 	}
 	for _, p := range players {
-		game.PlayersID = append(game.PlayersID, p.ID)
-		err := p.Get(p.ID, db)
-		if err != nil {
-			log.Println("no such player", p.ID)
-		}
-		//log.Println("player", player)
-		p.AddNewGame(ID)
-		p.Store(db)
-
-		game.Description += "@" + p.Username + " "
+		game.PlayersID = append(game.PlayersID, p)
+		
+		game.Description += "@" + string(p.ChatID) + " "
 	}
+	
+	// for _, p := range players {
+	// 	err := p.Get(p.ID, db)
+	// 	if err != nil {
+	// 		log.Println("no such player", p.ID)
+	// 	}
+	// 	//log.Println("player", player)
+	// 	p.AddNewGame(ID)
+	// 	p.Store(db)
+
+	// }
 	db.Set(fmt.Sprintf("game:%d", ID), game)
 
 	return game
@@ -85,7 +89,7 @@ func (g Game) SendStatus(db memory.Memory, bot Sender) {
 	}
 }
 
-func Send(id memory.PlayerID, text string, bot Sender) {
+func Send(id PlayerID, text string, bot Sender) {
 	msg := tgbotapi.NewMessage(id.ChatID, text)
 
 	if bot == nil {
@@ -127,7 +131,7 @@ func checkBoundary(g Game, x, y int) error {
 }
 
 // Makes move by a player
-func (g *Game) Move(playerID memory.PlayerID, move string) error {
+func (g *Game) Move(playerID PlayerID, move string) error {
 
 	if g.Status == Finished {
 		return errors.New("the game is finished")
