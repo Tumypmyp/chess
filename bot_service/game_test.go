@@ -8,14 +8,14 @@ import (
 func TestGame(t *testing.T) {
 	t.Run("move", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		player := NewPlayer(db, PlayerID{12,12}, "pl")
+		player := NewPlayer(db, memory.PlayerID{12,12}, "pl")
 		game := NewGame(db, nil, player)
 		err := game.Move(player.ID, "00")
 		AssertNoError(t, err)
 
 		player.Get(player.ID, db)
 		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
-		want := Game{PlayersID: []PlayerID{player.ID},
+		want := Game{PlayersID: []memory.PlayerID{player.ID},
 			Description:   "@pl ",
 			CurrentPlayer: 0,
 			Status:        Started,
@@ -25,7 +25,7 @@ func TestGame(t *testing.T) {
 	})
 	t.Run("do move", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		player := NewPlayer(db, PlayerID{12,12}, "pl")
+		player := NewPlayer(db, memory.PlayerID{12,12}, "pl")
 		game := NewGame(db, nil, player)
 		err := player.Do(db, nil, "00")
 		AssertNoError(t, err)
@@ -34,7 +34,7 @@ func TestGame(t *testing.T) {
 		AssertNoError(t, err)
 
 		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
-		want := Game{PlayersID: []PlayerID{player.ID},
+		want := Game{PlayersID: []memory.PlayerID{player.ID},
 			Description:   "@pl ",
 			CurrentPlayer: 0,
 			Board:         board,
@@ -43,8 +43,8 @@ func TestGame(t *testing.T) {
 	})
 	t.Run("2 players play in turns", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		p1 := NewPlayer(db, PlayerID{12,12}, "pl12")
-		p2 := NewPlayer(db, PlayerID{13,13}, "pl13")
+		p1 := NewPlayer(db, memory.PlayerID{12,12}, "pl12")
+		p2 := NewPlayer(db, memory.PlayerID{13,13}, "pl13")
 		p1.NewGame(db, nil, p2)
 
 		var err error
@@ -58,8 +58,8 @@ func TestGame(t *testing.T) {
 	t.Run("2 players", func(t *testing.T) {
 		mem := memory.NewStubDatabase()
 		db := mem
-		p1 := NewPlayer(db, PlayerID{12,12}, "pl12")
-		p2 := NewPlayer(db, PlayerID{13,13}, "pl13")
+		p1 := NewPlayer(db, memory.PlayerID{12,12}, "pl12")
+		p2 := NewPlayer(db, memory.PlayerID{13,13}, "pl13")
 		p1.NewGame(db, nil, p2)
 
 		p1.Get(p1.ID, db)
@@ -71,7 +71,7 @@ func TestGame(t *testing.T) {
 		AssertNoError(t, err)
 
 		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
-		want := Game{PlayersID: []PlayerID{p1.ID, p2.ID},
+		want := Game{PlayersID: []memory.PlayerID{p1.ID, p2.ID},
 			Description:   "@pl12 @pl13 ",
 			CurrentPlayer: 1,
 			Board:         board,
@@ -93,7 +93,7 @@ func TestGame(t *testing.T) {
 
 	t.Run("game status", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		player := NewPlayer(db, PlayerID{12,12}, "pl")
+		player := NewPlayer(db, memory.PlayerID{12,12}, "pl")
 		game := NewGame(db, nil, player)
 		AssertStatus(t, game.Status, Started)
 

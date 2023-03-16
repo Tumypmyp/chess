@@ -36,7 +36,7 @@ func main() {
 			continue
 		}
 
-		ID := PlayerID{
+		ID := memory.PlayerID{
 			ChatID:   update.Message.Chat.ID,
 			ClientID: update.Message.From.ID,
 		}

@@ -47,7 +47,7 @@ func (g GameStatus) String() string {
 type Game struct {
 	ID            int64      `json:"ID"`
 	Description   string     `json:"description"`
-	PlayersID     []PlayerID `json:"players"`
+	PlayersID     []memory.PlayerID `json:"players"`
 	CurrentPlayer int
 	Status        GameStatus
 	Board         [3][3]Mark `json:"board"`
@@ -85,7 +85,7 @@ func (g Game) SendStatus(db memory.Memory, bot Sender) {
 	}
 }
 
-func Send(id PlayerID, text string, bot Sender) {
+func Send(id memory.PlayerID, text string, bot Sender) {
 	msg := tgbotapi.NewMessage(id.ChatID, text)
 
 	if bot == nil {
@@ -127,7 +127,7 @@ func checkBoundary(g Game, x, y int) error {
 }
 
 // Makes move by a player
-func (g *Game) Move(playerID PlayerID, move string) error {
+func (g *Game) Move(playerID memory.PlayerID, move string) error {
 
 	if g.Status == Finished {
 		return errors.New("the game is finished")

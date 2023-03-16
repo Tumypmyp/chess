@@ -19,18 +19,13 @@ type Sender interface {
 	Send(tgbotapi.Chattable) (tgbotapi.Message, error)
 }
 
-type PlayerID struct {
-	ChatID   int64
-	ClientID int64
-}
-
 type Player struct {
-	ID       PlayerID
+	ID       memory.PlayerID
 	GamesID  []int64 `json:"gamesID"`
 	Username string  `json:"username"`
 }
 
-func NewPlayer(db memory.Memory, ID PlayerID, Username string) Player {
+func NewPlayer(db memory.Memory, ID memory.PlayerID, Username string) Player {
 	p := Player{
 		ID:       ID,
 		Username: Username,
@@ -107,7 +102,7 @@ func (p *Player) DoNewGame(db memory.Memory, bot Sender, cmd string) (err error)
 		if err = db.Get(key, &clientID); err != nil {
 			return fmt.Errorf("cant find player @%v", p2)
 		}
-		id := PlayerID{p.ID.ChatID, clientID}
+		id := memory.PlayerID{p.ID.ChatID, clientID}
 
 		var player Player
 		if err := player.Get(id, db); err != nil {
@@ -161,7 +156,7 @@ func (p *Player) Do(db memory.Memory, bot Sender, cmd string) error {
 }
 
 
-func (p *Player) Get(ID PlayerID, m memory.Memory) error {
+func (p *Player) Get(ID memory.PlayerID, m memory.Memory) error {
 	key := fmt.Sprintf("chat:%duser:%d", ID.ChatID, ID.ClientID)
 	if err := m.Get(key, p); err != nil {
 		return fmt.Errorf("can not get player by id: %w", err)
