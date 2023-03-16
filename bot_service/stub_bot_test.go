@@ -24,5 +24,6 @@ func TestStubBot(t *testing.T) {
 		AssertNoError(t, err)
 		AssertString(t, val.Text, "ok")
 		AssertString(t, bot.Read(), "abcdefgh")
+		AssertInt(t, bot.Len(), 2)
 	})
 }

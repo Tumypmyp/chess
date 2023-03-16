@@ -189,9 +189,6 @@ func TestPlayer(t *testing.T) {
 	})
 }
 
-
-
-
 func TestPlayerResponses(t *testing.T) {
 	t.Run("start player", func(t *testing.T) {
 		db := memory.NewStubDatabase()
@@ -201,6 +198,30 @@ func TestPlayerResponses(t *testing.T) {
 		err := p.Do(db, bot, "12")
 		AssertError(t, err)
 		AssertString(t, bot.Read(), NoCurrentGameError{}.Error())
-		
+	})
+	t.Run("start game with other", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		bot := NewStubBot()
+		p1 := NewPlayer(db, PlayerID{123, 123}, "abc")
+		p2 := NewPlayer(db, PlayerID{456, 456}, "def")
+
+		p1.NewGame(db, bot, p2)
+		AssertInt(t, bot.Len(), 2)
+
+		p1.Do(db, bot, "11")
+		AssertInt(t, bot.Len(), 4)
+	})
+	t.Run("start game with 2 other", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		bot := NewStubBot()
+		p1 := NewPlayer(db, PlayerID{123, 123}, "abc")
+		p2 := NewPlayer(db, PlayerID{456, 456}, "def")
+		p3 := NewPlayer(db, PlayerID{789, 789}, "ghi")
+
+		p1.NewGame(db, bot, p2, p3)
+		AssertInt(t, bot.Len(), 3)
+
+		p1.Do(db, bot, "11")
+		AssertInt(t, bot.Len(), 6)
 	})
 }
