@@ -2,11 +2,12 @@ package main
 
 import (
 	"testing"
+	"github.com/tumypmyp/chess/memory"
 )
 
 func TestPlayer(t *testing.T) {
 	t.Run("move player", func(t *testing.T) {
-		mem := NewStubDatabase()
+		mem := memory.NewStubDatabase()
 		db := mem
 		p := NewPlayer(db, PlayerID{123, 123}, "pl")
 
@@ -22,7 +23,7 @@ func TestPlayer(t *testing.T) {
 		AssertBoard(t, game.Board, want)
 	})
 	t.Run("new game", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		p := NewPlayer(db, PlayerID{123, 123}, "pl")
 
 		p.NewGame(db, nil)
@@ -47,7 +48,7 @@ func TestPlayer(t *testing.T) {
 		AssertBoard(t, game.Board, want)
 	})
 	t.Run("new game is next id", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		db.Set("gameID", int64(9))
 
 		p := NewPlayer(db, PlayerID{123, 123}, "pl")
@@ -65,7 +66,7 @@ func TestPlayer(t *testing.T) {
 		AssertInt(t, game.ID, 11)
 	})
 	t.Run(".NewGame updates player", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		id := PlayerID{123456, 123456}
 		p := NewPlayer(db, id, "pl")
 
@@ -77,7 +78,7 @@ func TestPlayer(t *testing.T) {
 	})
 
 	t.Run("current game updates player", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		id := PlayerID{123456, 123456}
 		p := NewPlayer(db, id, "pl")
 
@@ -87,7 +88,7 @@ func TestPlayer(t *testing.T) {
 
 	})
 	t.Run("do", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		id := PlayerID{1234, 1234}
 		//?? why 1234-123
 		p := NewPlayer(db, PlayerID{123, 123}, "pl")
@@ -104,7 +105,7 @@ func TestPlayer(t *testing.T) {
 		AssertError(t, err)
 	})
 	t.Run("do start game with other", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		p1 := NewPlayer(db, PlayerID{123, 123}, "abc")
 		p2 := NewPlayer(db, PlayerID{456, 456}, "def")
 
@@ -119,7 +120,7 @@ func TestPlayer(t *testing.T) {
 
 	})
 	t.Run("start game with other", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		p1 := NewPlayer(db, PlayerID{123, 123}, "abc")
 		p2 := NewPlayer(db, PlayerID{456, 456}, "def")
 
@@ -133,7 +134,7 @@ func TestPlayer(t *testing.T) {
 
 	})
 	t.Run("start game with 2 others", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		p1 := NewPlayer(db, PlayerID{123, 123}, "abc")
 		p2 := NewPlayer(db, PlayerID{456, 456}, "def")
 		p3 := NewPlayer(db, PlayerID{789, 789}, "ghi")
@@ -152,7 +153,7 @@ func TestPlayer(t *testing.T) {
 	})
 
 	t.Run("one player with different chat", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		p := NewPlayer(db, PlayerID{123, 123}, "pl")
 
 		p.NewGame(db, nil)

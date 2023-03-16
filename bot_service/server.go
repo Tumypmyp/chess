@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/tumypmyp/chess/memory"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -25,7 +26,7 @@ func main() {
 	updateConfig.Timeout = 30
 	updates := bot.GetUpdatesChan(updateConfig)
 
-	db, err := NewDatabase()
+	db, err := memory.NewDatabase()
 	if err != nil {
 		log.Fatalf("can't connect to database: %v", err)
 	}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"github.com/tumypmyp/chess/memory"
 )
 
 type Mark int
@@ -50,7 +51,7 @@ type Game struct {
 	Board         [3][3]Mark `json:"board"`
 }
 
-func NewGame(db Memory, bot Sender, players ...Player) Game {
+func NewGame(db memory.Memory, bot Sender, players ...Player) Game {
 	ID, err := db.Incr("gameID")
 	if err != nil {
 		// log.Printf("cant restore id %v", err)
@@ -75,6 +76,16 @@ func NewGame(db Memory, bot Sender, players ...Player) Game {
 	return game
 }
 
+// sends status to all players
+func (g Game) SendStatus(db memory.Memory, bot Sender) {
+	for _, id := range g.PlayersID {
+		var p Player
+		p.Get(id, db)
+		p.Send(g.String(), bot)
+	}
+}
+
+
 // Returns string representation of a game
 func (g Game) String() (s string) {
 	s = g.Description + "\n" + g.Status.String() + "\n"
@@ -89,6 +100,7 @@ func (g Game) String() (s string) {
 var (
     placeNotEmpty = errors.New("place is not empty")
 )
+
 // Returns false if a point out of boundary
 func checkBoundary(g Game, x, y int) (error) {
 	if x < 0 || len(g.Board) <= x {
@@ -103,12 +115,13 @@ func checkBoundary(g Game, x, y int) (error) {
 	return nil
 }
 
-func (g *Game) Move(player Player, move string) error {
+// Makes move by a player
+func (g *Game) Move(playerID PlayerID, move string) error {
 
 	if g.Status == Finished {
 		return errors.New("the game is finished")
 	}
-	if player.ID != g.PlayersID[g.CurrentPlayer] {
+	if playerID != g.PlayersID[g.CurrentPlayer] {
 		return errors.New("not your turn")
 	}
 
@@ -148,10 +161,5 @@ func (g *Game) UpdateStatus() {
 	}
 
 }
-func (g Game) SendStatus(db Memory, bot Sender) {
-	for _, id := range g.PlayersID {
-		var p Player
-		p.Get(id, db)
-		p.Send(g.String(), bot)
-	}
-}
+
+

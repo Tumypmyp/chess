@@ -8,8 +8,10 @@ import (
 	"strings"
 	"time"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/tumypmyp/chess/leaderboard"
+	"github.com/tumypmyp/chess/memory"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -17,6 +19,7 @@ import (
 type Sender interface {
 	Send(tgbotapi.Chattable) (tgbotapi.Message, error)
 }
+
 type PlayerID struct {
 	ChatID   int64
 	ClientID int64
@@ -28,7 +31,7 @@ type Player struct {
 	Username string  `json:"username"`
 }
 
-func NewPlayer(db Memory, ID PlayerID, Username string) Player {
+func NewPlayer(db memory.Memory, ID PlayerID, Username string) Player {
 	p := Player{
 		ID:       ID,
 		Username: Username,
@@ -38,7 +41,7 @@ func NewPlayer(db Memory, ID PlayerID, Username string) Player {
 	return p
 }
 
-func (p *Player) CurrentGame(db Memory) (game Game, err error) {
+func (p *Player) CurrentGame(db memory.Memory) (game Game, err error) {
 	p.Get(p.ID, db)
 	if len(p.GamesID) == 0 {
 		return game, errors.New("no current game,\ntry: /newgame")
@@ -51,7 +54,7 @@ func (p *Player) AddNewGame(gameID int64) {
 	p.GamesID = append(p.GamesID, gameID)
 }
 
-func (p *Player) NewGame(db Memory, bot Sender, players ...Player) (game Game) {
+func (p *Player) NewGame(db memory.Memory, bot Sender, players ...Player) (game Game) {
 
 	players = append([]Player{*p}, players...)
 
@@ -62,12 +65,12 @@ func (p *Player) NewGame(db Memory, bot Sender, players ...Player) (game Game) {
 
 // add p.Update()
 
-func (p *Player) Move(db Memory, bot Sender, move string) error {
+func (p *Player) Move(db memory.Memory, bot Sender, move string) error {
 	game, err := p.CurrentGame(db)
 	if err != nil {
 		return err
 	}
-	if err = game.Move(*p, move); err != nil {
+	if err = game.Move(p.ID, move); err != nil {
 		return err
 	}
 	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
@@ -87,7 +90,9 @@ func (p Player) Send(text string, bot Sender) {
 		log.Printf("cant send: %v", err)
 	}
 }
-func (p *Player) DoNewGame(db Memory, bot Sender, cmd string) error {
+
+
+func (p *Player) DoNewGame(db memory.Memory, bot Sender, cmd string) error {
 	others := make([]string, 3)
 	n, _ := fmt.Sscanf(cmd, "/newgame @%v @%v @%v", &others[0], &others[1], &others[2])
 	others = others[:n]
@@ -133,7 +138,7 @@ func (p *Player) getLeaderboard(bot Sender) error {
 	return nil
 }
 
-func (p *Player) Do(db Memory, bot Sender, cmd string) error {
+func (p *Player) Do(db memory.Memory, bot Sender, cmd string) error {
 	pref := "/newgame"
 	leaderboard := "/leaderboard"
 
@@ -145,7 +150,9 @@ func (p *Player) Do(db Memory, bot Sender, cmd string) error {
 		return p.Move(db, bot, cmd)
 	}
 }
-func (p *Player) Get(ID PlayerID, m Memory) error {
+
+
+func (p *Player) Get(ID PlayerID, m memory.Memory) error {
 	key := fmt.Sprintf("chat:%duser:%d", ID.ChatID, ID.ClientID)
 	if err := m.Get(key, p); err != nil {
 		return fmt.Errorf("can not get player by id: %w", err)
@@ -153,11 +160,13 @@ func (p *Player) Get(ID PlayerID, m Memory) error {
 	return nil
 }
 
-// Update Memory with new value of a player
-func (p Player) Store(m Memory) error {
+// Update memory.Memory with new value of a player
+func (p Player) Store(m memory.Memory) error {
 	key := fmt.Sprintf("chat:%duser:%d", p.ID.ChatID, p.ID.ClientID)
 	if err := m.Set(key, p); err != nil {
 		return fmt.Errorf("error when storing player %v: %w", p, err)
 	}
 	return nil
 }
+
+

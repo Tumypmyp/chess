@@ -2,14 +2,15 @@ package main
 
 import (
 	"testing"
+	"github.com/tumypmyp/chess/memory"
 )
 
 func TestGame(t *testing.T) {
 	t.Run("move", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		player := NewPlayer(db, PlayerID{12,12}, "pl")
 		game := NewGame(db, nil, player)
-		err := game.Move(player, "00")
+		err := game.Move(player.ID, "00")
 		AssertNoError(t, err)
 
 		player.Get(player.ID, db)
@@ -23,7 +24,7 @@ func TestGame(t *testing.T) {
 		AssertGame(t, game, want)
 	})
 	t.Run("do move", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		player := NewPlayer(db, PlayerID{12,12}, "pl")
 		game := NewGame(db, nil, player)
 		err := player.Do(db, nil, "00")
@@ -41,7 +42,7 @@ func TestGame(t *testing.T) {
 		AssertGame(t, game, want)
 	})
 	t.Run("2 players play in turns", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		p1 := NewPlayer(db, PlayerID{12,12}, "pl12")
 		p2 := NewPlayer(db, PlayerID{13,13}, "pl13")
 		p1.NewGame(db, nil, p2)
@@ -55,7 +56,7 @@ func TestGame(t *testing.T) {
 
 	})
 	t.Run("2 players", func(t *testing.T) {
-		mem := NewStubDatabase()
+		mem := memory.NewStubDatabase()
 		db := mem
 		p1 := NewPlayer(db, PlayerID{12,12}, "pl12")
 		p2 := NewPlayer(db, PlayerID{13,13}, "pl13")
@@ -66,7 +67,7 @@ func TestGame(t *testing.T) {
 		game, err := p1.CurrentGame(db)
 		AssertNoError(t, err)
 
-		err = game.Move(p1, "00")
+		err = game.Move(p1.ID, "00")
 		AssertNoError(t, err)
 
 		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
@@ -77,7 +78,7 @@ func TestGame(t *testing.T) {
 			ID:            0}
 		AssertGame(t, game, want)
 
-		err = game.Move(p2, "01")
+		err = game.Move(p2.ID, "01")
 		AssertNoError(t, err)
 
 		board = [3][3]Mark{{1, 2, 0}, {0, 0, 0}, {0, 0, 0}}
@@ -91,17 +92,17 @@ func TestGame(t *testing.T) {
 	})
 
 	t.Run("game status", func(t *testing.T) {
-		db := NewStubDatabase()
+		db := memory.NewStubDatabase()
 		player := NewPlayer(db, PlayerID{12,12}, "pl")
 		game := NewGame(db, nil, player)
 		AssertStatus(t, game.Status, Started)
 
-		err := game.Move(player, "00")
+		err := game.Move(player.ID, "00")
 		AssertNoError(t, err)
 
-		err = game.Move(player, "11")
+		err = game.Move(player.ID, "11")
 		AssertNoError(t, err)
-		err = game.Move(player, "22")
+		err = game.Move(player.ID, "22")
 		AssertNoError(t, err)
 		AssertStatus(t, game.Status, Finished)
 	})
