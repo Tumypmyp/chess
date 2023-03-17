@@ -44,12 +44,19 @@ func (g GameStatus) String() string {
 	return "unknown"
 }
 
+// Representation of a play
 type Game struct {
+	// game id
 	ID            int64      `json:"ID"`
+	// string describing a game status, players
 	Description   string     `json:"description"`
+	// players of a game
 	PlayersID     []PlayerID `json:"players"`
+	// player id in a slice 
 	CurrentPlayer int
+	// status of a game
 	Status        GameStatus
+	// board representation
 	Board         [3][3]Mark `json:"board"`
 }
 
@@ -61,55 +68,42 @@ func NewGame(db memory.Memory, bot Sender, players ...PlayerID) Game {
 	game := Game{
 		ID: ID,
 	}
+	// make description
 	for _, p := range players {
 		game.PlayersID = append(game.PlayersID, p)
 
 		game.Description += "@" + string(p.ChatID) + " "
 	}
 
-	// for _, p := range players {
-	// 	err := p.Get(p.ID, db)
-	// 	if err != nil {
-	// 		log.Println("no such player", p.ID)
-	// 	}
-	// 	//log.Println("player", player)
-	// 	p.AddNewGame(ID)
-	// 	p.Store(db)
-
-	// }
 	db.Set(fmt.Sprintf("game:%d", ID), game)
-
 	return game
 }
 
 // sends status to all players
 func (g Game) SendStatus(db memory.Memory, bot Sender) {
 	for _, id := range g.PlayersID {
-		Send(id, g.String(), bot)
+		Send(id, g.String(), makeKeyboard(g), bot)
 	}
 }
 
-var numericKeyboard = tgbotapi.NewInlineKeyboardMarkup(
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("00", "00"),
-		tgbotapi.NewInlineKeyboardButtonData("01", "01"),
-		tgbotapi.NewInlineKeyboardButtonData("02", "02"),
-	),
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("10", "11"),
-		tgbotapi.NewInlineKeyboardButtonData("11", "11"),
-		tgbotapi.NewInlineKeyboardButtonData("12", "12"),
-	),
-	tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("20", "21"),
-		tgbotapi.NewInlineKeyboardButtonData("21", "21"),
-		tgbotapi.NewInlineKeyboardButtonData("22", "22"),
-	),
-)
+// make inline keyboard for game
+func makeKeyboard(g Game) tgbotapi.InlineKeyboardMarkup {
+	markup := make([][]tgbotapi.InlineKeyboardButton, len(g.Board))
+	
+	for i, v := range g.Board {
+		markup[i] = make([]tgbotapi.InlineKeyboardButton, len(g.Board[i]))
+		for j, _ := range v {
+			markup[i][j] = tgbotapi.NewInlineKeyboardButtonData(g.Board[i][j].String(), fmt.Sprintf("%d%d", i, j))
+		}
+	}
+	return tgbotapi.InlineKeyboardMarkup{
+		InlineKeyboard: markup,
+	}
+}
 
-func Send(id PlayerID, text string, bot Sender) {
+func Send(id PlayerID, text string, keyboard tgbotapi.InlineKeyboardMarkup, bot Sender) {
 	msg := tgbotapi.NewMessage(id.ChatID, text)
-	msg.ReplyMarkup = numericKeyboard
+	msg.ReplyMarkup = keyboard
 	if bot == nil {
 		return
 	}
@@ -121,18 +115,21 @@ func Send(id PlayerID, text string, bot Sender) {
 // Returns string representation of a game
 func (g Game) String() (s string) {
 	s = g.Description + "\n" + g.Status.String() + "\n"
-	for _, row := range g.Board {
-		for _, val := range row {
-			s += val.String()
-		}
-		s += "\n"
-	}
+	// for _, row := range g.Board {
+	// 	for _, val := range row {
+	// 		s += val.String()
+	// 	}
+	// 	s += "\n"
+	// }
 	return
 }
 
-var (
-	placeNotEmpty = errors.New("place is not empty")
-)
+
+
+type PlaceNotEmptyError struct{}
+func (n PlaceNotEmptyError) Error() string { return "place is not empty" }
+
+
 
 // Returns false if a point out of boundary
 func checkBoundary(g Game, x, y int) error {
@@ -143,7 +140,7 @@ func checkBoundary(g Game, x, y int) error {
 		return errors.New("y coordinate out of bounds")
 	}
 	if g.Board[x][y] != Undefined {
-		return placeNotEmpty
+		return PlaceNotEmptyError{}
 	}
 	return nil
 }
@@ -176,6 +173,8 @@ func allSame(v [3]Mark) bool {
 	return v[0] == v[1] && v[1] == v[2] && v[0] != Undefined
 }
 
+
+// update status of a game
 func (g *Game) UpdateStatus() {
 	if allSame([3]Mark{g.Board[0][0], g.Board[1][1], g.Board[2][2]}) {
 		g.Status = Finished
