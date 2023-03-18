@@ -47,6 +47,13 @@ func AssertError(t testing.TB, err error) {
 		t.Fatalf("expected an error but did not get one: %v", err)
 	}
 }
+func AssertExactError(t testing.TB, a, b error) {
+	t.Helper()
+	if a != b {
+		t.Fatalf("expected an error %v, but got: %v", a, b)
+	}
+}
+
 
 func AssertBoard(t testing.TB, got, want [3][3]game.Mark) {
 	t.Helper()

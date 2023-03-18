@@ -19,6 +19,7 @@ import (
 func Do(update tgbotapi.Update, db memory.Memory, bot game.Sender, cmd string) error {
 	ID := game.PlayerID(update.SentFrom().ID)
 	// IsCommand
+	log.Println()
 	var player Player
 	var err error
 	if err = player.Get(ID, db); err != nil {
@@ -153,6 +154,30 @@ func (p *Player) getLeaderboard(bot game.Sender) error {
 	log.Printf("Greeting: %s", r.GetS())
 	p.Send(r.GetS(), bot)
 	return nil
+}
+
+type NoSuchCommandError struct {
+	cmd string
+}
+
+func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
+
+// runs a command by player
+func (p *Player) Cmd(db memory.Memory, bot game.Sender, cmd string) (err error) {
+	newgame := "/newgame"
+	leaderboard := "/leaderboard"
+	switch cmd {
+	case newgame:
+		err = p.DoNewGame(db, bot, cmd)
+	case leaderboard:
+		err = p.getLeaderboard(bot)
+	default:
+		err = NoSuchCommandError{cmd}
+	}
+	if err != nil {
+		p.Send(err.Error(), bot)
+	}
+	return
 }
 
 func (p *Player) Do2(db memory.Memory, bot game.Sender, cmd string) error {

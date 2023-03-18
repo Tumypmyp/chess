@@ -178,7 +178,7 @@ func TestPlayer(t *testing.T) {
 		p2 := NewPlayer(db, g.PlayerID(456), "pl")
 
 		_, err = p2.CurrentGame(db)
-		AssertError(t, err)
+		AssertExactError(t, err, NoCurrentGameError{})
 
 		p2.NewGame(db, nil)
 		game, err = p2.CurrentGame(db)
@@ -228,5 +228,51 @@ func TestPlayerResponses(t *testing.T) {
 
 		p1.Do(db, bot, "11")
 		AssertInt(t, bot.Len(), 6)
+	})
+}
+
+func TestPlayerCmd(t *testing.T) {
+	t.Run("new_game", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		bot := NewStubBot()
+		p1 := NewPlayer(db, g.PlayerID(123), "abc")
+
+		var err error
+		err = p1.Cmd(db, bot, "/newgame")
+		AssertNoError(t, err)
+
+		_, err = p1.CurrentGame(db)
+		AssertNoError(t, err)
+		AssertInt(t, bot.Len(), 1)
+
+	})
+	t.Run("leaderboard", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		bot := NewStubBot()
+		p1 := NewPlayer(db, g.PlayerID(123), "abc")
+
+		var err error
+		err = p1.Cmd(db, bot, "/leaderboard")
+		AssertError(t, err)
+
+		_, err = p1.CurrentGame(db)
+		AssertExactError(t, err, NoCurrentGameError{})
+		AssertInt(t, bot.Len(), 1)
+	})
+	t.Run("no such command", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		bot := NewStubBot()
+		p1 := NewPlayer(db, g.PlayerID(123), "abc")
+
+		var err error
+		err = p1.Cmd(db, bot, "/command")
+		AssertExactError(t, err, NoSuchCommandError{"/command"})
+
+		err = p1.Cmd(db, bot, "/newgame2")
+		AssertExactError(t, err, NoSuchCommandError{"/newgame2"})
+
+		_, err = p1.CurrentGame(db)
+		AssertExactError(t, err, NoCurrentGameError{})
+		AssertInt(t, bot.Len(), 2)
 	})
 }
