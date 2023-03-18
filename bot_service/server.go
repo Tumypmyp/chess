@@ -36,10 +36,7 @@ func main() {
 		if update.SentFrom() == nil {
 			continue
 		}
-		ID := game.PlayerID{
-			// ChatID:   update.FromChat().ID,
-			UserID: update.SentFrom().ID,
-		}
+		ID := game.PlayerID(update.SentFrom().ID)
 		// IsCommand
 		var player Player
 		var err error

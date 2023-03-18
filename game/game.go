@@ -69,10 +69,10 @@ func NewGame(db memory.Memory, bot Sender, players ...PlayerID) Game {
 		ID: ID,
 	}
 	// make description
-	for _, p := range players {
-		game.PlayersID = append(game.PlayersID, p)
+	for _, id := range players {
+		game.PlayersID = append(game.PlayersID, id)
 
-		game.Description += "@" + string(p.UserID) + " "
+		game.Description += "@" + string(id) + " "
 	}
 
 	db.Set(fmt.Sprintf("game:%d", ID), game)
@@ -102,7 +102,7 @@ func makeKeyboard(g Game) tgbotapi.InlineKeyboardMarkup {
 }
 
 func Send(id PlayerID, text string, keyboard tgbotapi.InlineKeyboardMarkup, bot Sender) {
-	msg := tgbotapi.NewMessage(id.UserID, text)
+	msg := tgbotapi.NewMessage(int64(id), text)
 	msg.ReplyMarkup = keyboard
 	if bot == nil {
 		return

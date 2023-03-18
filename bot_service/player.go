@@ -27,7 +27,7 @@ func NewPlayer(db memory.Memory, ID game.PlayerID, Username string) Player {
 		ID:       ID,
 		Username: Username,
 	}
-	db.Set(fmt.Sprintf("username:%v", p.Username), p.ID.UserID)
+	db.Set(fmt.Sprintf("username:%v", p.Username), p.ID)
 	p.Store(db)
 	return p
 }
@@ -87,7 +87,7 @@ func (p *Player) Move(db memory.Memory, bot game.Sender, move string) error {
 }
 
 func (p Player) Send(text string, bot game.Sender) {
-	msg := tgbotapi.NewMessage(p.ID.UserID, text)
+	msg := tgbotapi.NewMessage(int64(p.ID), text)
 
 	if bot == nil {
 		return
@@ -109,7 +109,7 @@ func (p *Player) DoNewGame(db memory.Memory, bot game.Sender, cmd string) (err e
 			return fmt.Errorf("cant find player @%v", p2)
 		}
 
-		id := game.PlayerID{clientID}
+		id := game.PlayerID(clientID)
 
 		// var player Player
 		// if err := player.Get(id, db); err != nil {
@@ -164,7 +164,7 @@ func (p *Player) Do(db memory.Memory, bot game.Sender, cmd string) error {
 }
 
 func (p *Player) Get(ID game.PlayerID, m memory.Memory) error {
-	key := fmt.Sprintf("user:%d", ID.UserID)
+	key := fmt.Sprintf("user:%d", ID)
 	if err := m.Get(key, p); err != nil {
 		return fmt.Errorf("can not get player by id: %w", err)
 	}
@@ -173,7 +173,7 @@ func (p *Player) Get(ID game.PlayerID, m memory.Memory) error {
 
 // Update memory.Memory with new value of a player
 func (p Player) Store(m memory.Memory) error {
-	key := fmt.Sprintf("user:%d", p.ID.UserID)
+	key := fmt.Sprintf("user:%d", p.ID)
 	if err := m.Set(key, p); err != nil {
 		return fmt.Errorf("error when storing player %v: %w", p, err)
 	}

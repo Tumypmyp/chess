@@ -8,7 +8,5 @@ type Sender interface {
 	Send(tgbotapi.Chattable) (tgbotapi.Message, error)
 }
 
-type PlayerID struct {
-	// ChatID   int64
-	UserID int64
-}
+type PlayerID int64
+
