@@ -37,8 +37,8 @@ func main() {
 			continue
 		}
 		ID := game.PlayerID{
-			ChatID:   update.FromChat().ID,
-			ClientID: update.SentFrom().ID,
+			// ChatID:   update.FromChat().ID,
+			UserID: update.SentFrom().ID,
 		}
 		// IsCommand
 		var player Player

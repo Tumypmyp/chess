@@ -47,17 +47,17 @@ func (g GameStatus) String() string {
 // Representation of a play
 type Game struct {
 	// game id
-	ID            int64      `json:"ID"`
+	ID int64 `json:"ID"`
 	// string describing a game status, players
-	Description   string     `json:"description"`
+	Description string `json:"description"`
 	// players of a game
-	PlayersID     []PlayerID `json:"players"`
-	// player id in a slice 
+	PlayersID []PlayerID `json:"players"`
+	// player id in a slice
 	CurrentPlayer int
 	// status of a game
-	Status        GameStatus
+	Status GameStatus
 	// board representation
-	Board         [3][3]Mark `json:"board"`
+	Board [3][3]Mark `json:"board"`
 }
 
 func NewGame(db memory.Memory, bot Sender, players ...PlayerID) Game {
@@ -72,7 +72,7 @@ func NewGame(db memory.Memory, bot Sender, players ...PlayerID) Game {
 	for _, p := range players {
 		game.PlayersID = append(game.PlayersID, p)
 
-		game.Description += "@" + string(p.ChatID) + " "
+		game.Description += "@" + string(p.UserID) + " "
 	}
 
 	db.Set(fmt.Sprintf("game:%d", ID), game)
@@ -89,7 +89,7 @@ func (g Game) SendStatus(db memory.Memory, bot Sender) {
 // make inline keyboard for game
 func makeKeyboard(g Game) tgbotapi.InlineKeyboardMarkup {
 	markup := make([][]tgbotapi.InlineKeyboardButton, len(g.Board))
-	
+
 	for i, v := range g.Board {
 		markup[i] = make([]tgbotapi.InlineKeyboardButton, len(g.Board[i]))
 		for j, _ := range v {
@@ -102,7 +102,7 @@ func makeKeyboard(g Game) tgbotapi.InlineKeyboardMarkup {
 }
 
 func Send(id PlayerID, text string, keyboard tgbotapi.InlineKeyboardMarkup, bot Sender) {
-	msg := tgbotapi.NewMessage(id.ChatID, text)
+	msg := tgbotapi.NewMessage(id.UserID, text)
 	msg.ReplyMarkup = keyboard
 	if bot == nil {
 		return
@@ -115,21 +115,12 @@ func Send(id PlayerID, text string, keyboard tgbotapi.InlineKeyboardMarkup, bot 
 // Returns string representation of a game
 func (g Game) String() (s string) {
 	s = g.Description + "\n" + g.Status.String() + "\n"
-	// for _, row := range g.Board {
-	// 	for _, val := range row {
-	// 		s += val.String()
-	// 	}
-	// 	s += "\n"
-	// }
 	return
 }
 
-
-
 type PlaceNotEmptyError struct{}
+
 func (n PlaceNotEmptyError) Error() string { return "place is not empty" }
-
-
 
 // Returns false if a point out of boundary
 func checkBoundary(g Game, x, y int) error {
@@ -172,7 +163,6 @@ func (g *Game) Move(playerID PlayerID, move string) error {
 func allSame(v [3]Mark) bool {
 	return v[0] == v[1] && v[1] == v[2] && v[0] != Undefined
 }
-
 
 // update status of a game
 func (g *Game) UpdateStatus() {
