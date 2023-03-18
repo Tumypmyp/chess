@@ -6,6 +6,7 @@ COPY bot_service/*.go bot_service/
 COPY leaderboard/*.go leaderboard/
 COPY game/*.go game/
 COPY memory/*.go memory/
+COPY player/*.go player/
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
 	go build -o /go/bin/server ./bot_service
