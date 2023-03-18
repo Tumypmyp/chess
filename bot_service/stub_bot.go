@@ -33,6 +33,7 @@ func (s StubBot) Send(c tgbotapi.Chattable) (tgbotapi.Message, error) {
 func (s StubBot) Read() string {
 	return s.buffer.String()
 }
+
 func (s StubBot) Len() int64 {
 	return *s.len
 }

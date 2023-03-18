@@ -16,6 +16,18 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+func Do(update tgbotapi.Update, db memory.Memory, bot game.Sender, cmd string) error {
+	ID := game.PlayerID(update.SentFrom().ID)
+	// IsCommand
+	var player Player
+	var err error
+	if err = player.Get(ID, db); err != nil {
+		player = NewPlayer(db, ID, update.Message.From.UserName)
+	}
+	log.Println("player:", player)
+	return player.Do(db, bot, cmd)
+}
+
 type Player struct {
 	ID       game.PlayerID
 	GamesID  []int64 `json:"gamesID"`
