@@ -1,12 +1,10 @@
 
-name: Test player package
+name: Test game package
 
 on:
   push:
     branches: [ "main" ]
     paths:
-      - 'leaderboard/**'
-      - 'player/**'
       - 'game/**'
       - 'helpers/**'
   workflow_dispatch:
@@ -23,9 +21,9 @@ jobs:
       with:
         go-version: 1.19
 
-    - name: Build player
-      run: go build -o ./service -v ./player
+    - name: Build game
+      run: go build -o ./service -v ./game
 
-    - name: Test player
-      run: go test -v ./player
+    - name: Test game
+      run: go test -v ./game
       
