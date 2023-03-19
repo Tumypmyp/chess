@@ -3,6 +3,7 @@ package game
 import (
 	"testing"
 	"github.com/tumypmyp/chess/memory"
+	"github.com/tumypmyp/chess/helpers"
 )
 
 func TestGame(t *testing.T) {
@@ -73,14 +74,17 @@ func TestGame(t *testing.T) {
 		AssertStatus(t, game.Status, Finished)
 	})
 
-	// t.Run("add chat", func(t *testing.T) {
-	// 	db := memory.NewStubDatabase()
-	// 	bot := NewStubBot()
-	// 	player := PlayerID(12)
-	// 	game := NewGame(db, bot, player)
-	// 	AssertStatus(t, game.Status, Started)
-	// 	game.AddChat(1234)
-	// 	AssertInt(t, len(game.ChatID), 2)
-	// })
+	t.Run("add chat", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		bot := helpers.NewStubBot()
+		player := PlayerID(12)
+		game := NewGame(db, bot, player)
+		AssertStatus(t, game.Status, Started)
+		game.AddChat(1234)
+		AssertInt(t, int64(len(game.ChatsID)), 2)
+		t.Logf("%+v", game.ChatsID)
+		game.SendStatus(db, bot)
+		AssertInt(t, bot.Len(), 2)
+	})
 	
 }

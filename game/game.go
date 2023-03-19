@@ -81,9 +81,12 @@ func NewGame(db memory.Memory, bot Sender, players ...PlayerID) Game {
 	return game
 }
 
+func (g *Game) AddChat(chatID int64) {
+	g.ChatsID = append(g.ChatsID, chatID)
+}
 // sends status to all players
 func (g Game) SendStatus(db memory.Memory, bot Sender) {
-	for _, id := range g.PlayersID {
+	for _, id := range g.ChatsID {
 		Send(id, g.String(), makeKeyboard(g), bot)
 	}
 }
@@ -103,8 +106,8 @@ func makeKeyboard(g Game) tgbotapi.InlineKeyboardMarkup {
 	}
 }
 
-func Send(id PlayerID, text string, keyboard tgbotapi.InlineKeyboardMarkup, bot Sender) {
-	msg := tgbotapi.NewMessage(int64(id), text)
+func Send(chatID int64, text string, keyboard tgbotapi.InlineKeyboardMarkup, bot Sender) {
+	msg := tgbotapi.NewMessage(chatID, text)
 	msg.ReplyMarkup = keyboard
 	if bot == nil {
 		return
