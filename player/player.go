@@ -38,7 +38,10 @@ type NoCurrentGameError struct{}
 func (n NoCurrentGameError) Error() string { return "no current game,\ntry: /newgame" }
 
 func (p *Player) CurrentGame(db memory.Memory) (game game.Game, err error) {
-	p.Get(p.ID, db)
+	*p, err = GetPlayer(p.ID, db)
+	if err != nil {
+		return
+	}
 	if len(p.GamesID) == 0 {
 		return game, NoCurrentGameError{}
 	}
@@ -56,8 +59,7 @@ func (p *Player) NewGame(db memory.Memory, bot game.Sender, players ...game.Play
 	current_game = game.NewGame(db, bot, players...)
 
 	for _, id := range players {
-		var p Player
-		err := p.Get(id, db)
+		p, err := GetPlayer(id, db)
 		if err != nil {
 			log.Println("no such player", id)
 		}
@@ -66,7 +68,7 @@ func (p *Player) NewGame(db memory.Memory, bot game.Sender, players ...game.Play
 	}
 
 	current_game.SendStatus(db, bot)
-	p.Get(p.ID, db)
+	*p, _ = GetPlayer(p.ID, db)
 	return
 }
 
@@ -228,13 +230,7 @@ func (p *Player) Do2(db memory.Memory, bot game.Sender, cmd string) error {
 }
 
 
-func (p *Player) Get(ID game.PlayerID, m memory.Memory) error {
-	key := fmt.Sprintf("user:%d", ID)
-	if err := m.Get(key, p); err != nil {
-		return fmt.Errorf("can not get player by id: %w", err)
-	}
-	return nil
-}
+
 
 // Update memory.Memory with new value of a player
 func (p Player) Store(m memory.Memory) error {

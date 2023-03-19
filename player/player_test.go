@@ -16,7 +16,15 @@ func TestPlayer(t *testing.T) {
 		p := NewPlayer(db, g.PlayerID(123), "pl")
 
 		p.NewGame(db, nil)
-		p.Get(p.ID, db)
+
+		t.Log(mem.DB)
+		t.Log(p)
+
+		p, err := GetPlayer(p.ID, db)
+		AssertNoError(t, err)
+
+		t.Log(mem.DB)
+		t.Log(p)
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
@@ -32,7 +40,9 @@ func TestPlayer(t *testing.T) {
 
 		p.NewGame(db, nil)
 
-		p.Get(p.ID, db)
+		p, err := GetPlayer(p.ID, db)
+		AssertNoError(t, err)
+		
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
@@ -58,13 +68,17 @@ func TestPlayer(t *testing.T) {
 		p := NewPlayer(db, g.PlayerID(123), "pl")
 
 		p.NewGame(db, nil)
-		p.Get(p.ID, db)
+		p, err := GetPlayer(p.ID, db)
+		AssertNoError(t, err)
+
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 		AssertInt(t, game.ID, 10)
 
 		p.NewGame(db, nil)
-		p.Get(p.ID, db)
+		p, err = GetPlayer(p.ID, db)
+		AssertNoError(t, err)
+		
 		game, err = p.CurrentGame(db)
 		AssertNoError(t, err)
 		AssertInt(t, game.ID, 11)
@@ -95,15 +109,19 @@ func TestPlayer(t *testing.T) {
 	})
 	t.Run("do", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		id := g.PlayerID(1234)
-		//?? why 1234-123
+		id := g.PlayerID(123)
 		p := NewPlayer(db, g.PlayerID(123), "pl")
 
 		var err error
 		err = p.Do(db, nil, "/newgame")
 		AssertNoError(t, err)
 
-		p.Get(id, db)
+		p, err = GetPlayer(id, db)
+		AssertNoError(t, err)
+
+		_, err = GetPlayer(g.PlayerID(456), db)
+		AssertError(t, err)
+
 		_, err = p.CurrentGame(db)
 		AssertNoError(t, err)
 
@@ -166,7 +184,9 @@ func TestPlayer(t *testing.T) {
 
 		p.NewGame(db, nil)
 
-		p.Get(p.ID, db)
+		p, err := GetPlayer(p.ID, db)
+		AssertNoError(t, err)
+
 		game, err := p.CurrentGame(db)
 		AssertNoError(t, err)
 
