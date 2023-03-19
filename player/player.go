@@ -16,18 +16,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func Do(update tgbotapi.Update, db memory.Memory, bot game.Sender, cmd string) error {
-	ID := game.PlayerID(update.SentFrom().ID)
-	// IsCommand
-	log.Println()
-	var player Player
-	var err error
-	if err = player.Get(ID, db); err != nil {
-		player = NewPlayer(db, ID, update.Message.From.UserName)
-	}
-	log.Println("player:", player)
-	return player.Do(db, bot, cmd)
-}
 
 type Player struct {
 	ID       game.PlayerID
@@ -110,6 +98,38 @@ func (p Player) Send(text string, bot game.Sender) {
 	}
 }
 
+// func (p *Player) StartNewGame(db memory.Memory, bot game.Sender, entities []tgbotapi.MessageEntity) (err error) {
+
+// 	var players []game.PlayerID
+// 	for _, e := range entities {
+// 		log.Println("entity", e)
+// 		log.Println("user", e.User)
+		
+// 		if e.IsMention() {
+
+// 		} else if e.IsTextMention() {
+
+// 		}
+// 		var clientID int64
+// 		// key := fmt.Sprintf("username:%v", p2)
+// 		// if err = db.Get(key, &clientID); err != nil {
+// 		// 	return fmt.Errorf("cant find player @%v", p2)
+// 		// }
+
+// 		id := game.PlayerID(clientID)
+
+// 		// var player Player
+// 		// if err := player.Get(id, db); err != nil {
+// 		// 	id.ChatID = clientID
+// 		// 	player.Get(id, db)
+// 		// }
+// 		players = append(players, id)
+// 	}
+// 	p.NewGame(db, bot, players...)
+// 	return
+// }
+
+
 func (p *Player) DoNewGame(db memory.Memory, bot game.Sender, cmd string) (err error) {
 	others := make([]string, 3)
 	n, _ := fmt.Sscanf(cmd, "/newgame @%v @%v @%v", &others[0], &others[1], &others[2])
@@ -135,6 +155,12 @@ func (p *Player) DoNewGame(db memory.Memory, bot game.Sender, cmd string) (err e
 	return
 }
 
+
+type NoConnectionError struct {}
+
+func (n NoConnectionError) Error() string { return "can not connect to leaderboard" }
+
+
 func (p *Player) getLeaderboard(bot game.Sender) error {
 	conn, err := grpc.Dial("leaderboard:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -148,7 +174,7 @@ func (p *Player) getLeaderboard(bot game.Sender) error {
 	defer cancel()
 	r, err := c.GetLeaderboard(ctx, &leaderboard.Player{Name: "Vova"})
 	if err != nil {
-		return fmt.Errorf("could not get leaderboard")
+		return NoConnectionError{}
 
 	}
 	log.Printf("Greeting: %s", r.GetS())
@@ -163,21 +189,29 @@ type NoSuchCommandError struct {
 func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
 
 // runs a command by player
-func (p *Player) Cmd(db memory.Memory, bot game.Sender, cmd string) (err error) {
-	newgame := "/newgame"
-	leaderboard := "/leaderboard"
-	switch cmd {
+func (p *Player) Cmd(db memory.Memory, bot game.Sender, cmd *tgbotapi.Message) (err error) {
+	newgame := "newgame"
+	leaderboard := "leaderboard"
+	switch cmd.Command() {
 	case newgame:
-		err = p.DoNewGame(db, bot, cmd)
+		err = p.DoNewGame(db, bot, cmd.Text)
 	case leaderboard:
 		err = p.getLeaderboard(bot)
 	default:
-		err = NoSuchCommandError{cmd}
+		err = NoSuchCommandError{cmd.Command()}
 	}
 	if err != nil {
 		p.Send(err.Error(), bot)
 	}
 	return
+}
+
+func (p *Player) Do(db memory.Memory, bot game.Sender, cmd string) error {
+	err := p.Do2(db, bot, cmd)
+	if err != nil {
+		p.Send(err.Error(), bot)
+	}
+	return err
 }
 
 func (p *Player) Do2(db memory.Memory, bot game.Sender, cmd string) error {
@@ -192,13 +226,7 @@ func (p *Player) Do2(db memory.Memory, bot game.Sender, cmd string) error {
 		return p.Move(db, bot, cmd)
 	}
 }
-func (p *Player) Do(db memory.Memory, bot game.Sender, cmd string) error {
-	err := p.Do2(db, bot, cmd)
-	if err != nil {
-		p.Send(err.Error(), bot)
-	}
-	return err
-}
+
 
 func (p *Player) Get(ID game.PlayerID, m memory.Memory) error {
 	key := fmt.Sprintf("user:%d", ID)

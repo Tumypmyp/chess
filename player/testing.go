@@ -50,7 +50,7 @@ func AssertError(t testing.TB, err error) {
 func AssertExactError(t testing.TB, a, b error) {
 	t.Helper()
 	if a != b {
-		t.Fatalf("expected an error %v, but got: %v", a, b)
+		t.Fatalf("got error %v, but wanted: %v", a, b)
 	}
 }
 

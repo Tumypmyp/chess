@@ -5,6 +5,8 @@ import (
 
 	g "github.com/tumypmyp/chess/game"
 	"github.com/tumypmyp/chess/memory"
+	
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 func TestPlayer(t *testing.T) {
@@ -232,15 +234,17 @@ func TestPlayerResponses(t *testing.T) {
 }
 
 func TestPlayerCmd(t *testing.T) {
-	t.Run("new_game", func(t *testing.T) {
+	t.Run("newgame", func(t *testing.T) {
 		db := memory.NewStubDatabase()
 		bot := NewStubBot()
 		p1 := NewPlayer(db, g.PlayerID(123), "abc")
 
 		var err error
-		err = p1.Cmd(db, bot, "/newgame")
+		cmd := "/newgame"
+		err = p1.Cmd(db, bot, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
+					{Type:"bot_command", Offset: 0, Length: len(cmd)},
+				}})
 		AssertNoError(t, err)
-
 		_, err = p1.CurrentGame(db)
 		AssertNoError(t, err)
 		AssertInt(t, bot.Len(), 1)
@@ -252,8 +256,11 @@ func TestPlayerCmd(t *testing.T) {
 		p1 := NewPlayer(db, g.PlayerID(123), "abc")
 
 		var err error
-		err = p1.Cmd(db, bot, "/leaderboard")
-		AssertError(t, err)
+		cmd := "/leaderboard"
+		err = p1.Cmd(db, bot, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
+			{Type:"bot_command", Offset: 0, Length: len(cmd)},
+		}})
+		AssertExactError(t, err, NoConnectionError{})
 
 		_, err = p1.CurrentGame(db)
 		AssertExactError(t, err, NoCurrentGameError{})
@@ -265,11 +272,17 @@ func TestPlayerCmd(t *testing.T) {
 		p1 := NewPlayer(db, g.PlayerID(123), "abc")
 
 		var err error
-		err = p1.Cmd(db, bot, "/command")
-		AssertExactError(t, err, NoSuchCommandError{"/command"})
+		cmd1 := "/command"
+		err = p1.Cmd(db, bot, &tgbotapi.Message{Text: cmd1, Entities: []tgbotapi.MessageEntity{
+			{Type:"bot_command", Offset: 0, Length: len(cmd1)},
+		}})
+		AssertExactError(t, err, NoSuchCommandError{"command"})
 
-		err = p1.Cmd(db, bot, "/newgame2")
-		AssertExactError(t, err, NoSuchCommandError{"/newgame2"})
+		cmd2 := "/newgame2"
+		err = p1.Cmd(db, bot, &tgbotapi.Message{Text: cmd2, Entities: []tgbotapi.MessageEntity{
+			{Type:"bot_command", Offset: 0, Length: len(cmd2)},
+		}})
+		AssertExactError(t, err, NoSuchCommandError{"newgame2"})
 
 		_, err = p1.CurrentGame(db)
 		AssertExactError(t, err, NoCurrentGameError{})
