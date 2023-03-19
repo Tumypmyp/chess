@@ -5,6 +5,7 @@ import (
 
 	g "github.com/tumypmyp/chess/game"
 	"github.com/tumypmyp/chess/memory"
+	"github.com/tumypmyp/chess/helpers"
 	
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -107,6 +108,21 @@ func TestPlayer(t *testing.T) {
 		AssertNoError(t, err)
 
 	})
+		
+	t.Run("2 players play in turns", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		p1 := NewPlayer(db, g.PlayerID(12), "pl12")
+		p2 := NewPlayer(db, g.PlayerID(13), "pl13")
+		p1.NewGame(db, nil, p2.ID)
+
+		var err error
+		err = p2.Move(db, nil, "11")
+		AssertError(t, err)
+
+		err = p1.Move(db, nil, "11")
+		AssertNoError(t, err)
+	})
+
 	t.Run("do", func(t *testing.T) {
 		db := memory.NewStubDatabase()
 		id := g.PlayerID(123)
@@ -127,6 +143,29 @@ func TestPlayer(t *testing.T) {
 
 		err = p.Do(db, nil, "/123")
 		AssertError(t, err)
+	})
+	t.Run("do move", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		player := NewPlayer(db, g.PlayerID(12), "pl")
+		game := player.NewGame(db, nil)
+		player, err := GetPlayer(player.ID, db)
+		AssertNoError(t, err)
+		t.Log(db.DB)
+		t.Log(player)
+		err = player.Do(db, nil, "00")
+		AssertNoError(t, err)
+
+		game, err = player.CurrentGame(db)
+		AssertNoError(t, err)
+
+		board := [3][3]g.Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
+		want := g.Game{PlayersID: []g.PlayerID{player.ID},
+			Description:   "@12 ",
+			CurrentPlayer: 0,
+			ChatsID: []int64{12},
+			Board:         board,
+			ID:            0}
+		AssertGame(t, game, want)
 	})
 	t.Run("do start game with other", func(t *testing.T) {
 		mem := memory.NewStubDatabase()
@@ -219,7 +258,7 @@ func TestPlayer(t *testing.T) {
 func TestPlayerResponses(t *testing.T) {
 	t.Run("start player", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := NewStubBot()
+		bot := helpers.NewStubBot()
 
 		p := NewPlayer(db, g.PlayerID(123), "pl")
 		err := p.Do(db, bot, "12")
@@ -228,7 +267,7 @@ func TestPlayerResponses(t *testing.T) {
 	})
 	t.Run("start game with other", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := NewStubBot()
+		bot := helpers.NewStubBot()
 		p1 := NewPlayer(db, g.PlayerID(123), "abc")
 		p2 := NewPlayer(db, g.PlayerID(456), "def")
 
@@ -240,7 +279,7 @@ func TestPlayerResponses(t *testing.T) {
 	})
 	t.Run("start game with 2 other", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := NewStubBot()
+		bot := helpers.NewStubBot()
 		p1 := NewPlayer(db, g.PlayerID(123), "abc")
 		p2 := NewPlayer(db, g.PlayerID(456), "def")
 		p3 := NewPlayer(db, g.PlayerID(789), "ghi")
@@ -256,7 +295,7 @@ func TestPlayerResponses(t *testing.T) {
 func TestPlayerCmd(t *testing.T) {
 	t.Run("newgame", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := NewStubBot()
+		bot := helpers.NewStubBot()
 		p1 := NewPlayer(db, g.PlayerID(123), "abc")
 
 		var err error
@@ -272,7 +311,7 @@ func TestPlayerCmd(t *testing.T) {
 	})
 	t.Run("leaderboard", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := NewStubBot()
+		bot := helpers.NewStubBot()
 		p1 := NewPlayer(db, g.PlayerID(123), "abc")
 
 		var err error
@@ -288,7 +327,7 @@ func TestPlayerCmd(t *testing.T) {
 	})
 	t.Run("no such command", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := NewStubBot()
+		bot := helpers.NewStubBot()
 		p1 := NewPlayer(db, g.PlayerID(123), "abc")
 
 		var err error

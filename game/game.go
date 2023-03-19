@@ -70,11 +70,11 @@ func NewGame(db memory.Memory, bot Sender, players ...PlayerID) Game {
 	game := Game{
 		ID: ID,
 	}
-	// make description
+	// makes description
 	for _, id := range players {
 		game.PlayersID = append(game.PlayersID, id)
 		game.ChatsID = append(game.ChatsID, int64(id))
-		game.Description += "@" + string(id) + " "
+		game.Description += fmt.Sprintf("@%d ", id)
 	}
 
 	db.Set(fmt.Sprintf("game:%d", ID), game)

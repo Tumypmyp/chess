@@ -3,6 +3,7 @@ package player
 import (
 	"log"
 
+	"fmt"
 	"github.com/tumypmyp/chess/game"
 	"github.com/tumypmyp/chess/memory"
 	

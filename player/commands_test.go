@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/tumypmyp/chess/memory"
+	"github.com/tumypmyp/chess/helpers"
 	
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -11,7 +12,7 @@ import (
 func TestPlayerDo(t *testing.T) {
 	t.Run("do newgame", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := NewStubBot()
+		bot := helpers.NewStubBot()
 
 		cmd := "/newgame"
 		user := tgbotapi.User{ID: 123, UserName: "abc"}
