@@ -2,6 +2,7 @@ package player
 
 import (
 	"testing"
+	"reflect"
 
 	g "github.com/tumypmyp/chess/game"
 	"github.com/tumypmyp/chess/memory"
@@ -357,4 +358,31 @@ func TestPlayerCmd(t *testing.T) {
 		AssertNoError(t, err)
 		AssertString(t, r.Text, "@123 \nStarted\n")
 	})
+	t.Run("cmd to players id", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		_ = NewPlayer(db, PlayerID(123), "abc")
+		_ = NewPlayer(db, PlayerID(456), "def")
+
+		players, err := cmdToPlayersID(db, "/newgame @abc @def")
+		want := []PlayerID{123, 456}
+		AssertNoError(t, err)
+		if !reflect.DeepEqual(players, want) {
+			t.Errorf("got %v, wanted %v", players, want)
+		}
+	})
+	t.Run("cmd to no players id", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		_ = NewPlayer(db, PlayerID(123), "abc")
+		_ = NewPlayer(db, PlayerID(456), "def")
+
+		_, err := cmdToPlayersID(db, "/newgame @aaa @bbb")
+		AssertExactError(t, err, NoSuchPlayerError{})
+	})
 }
+
+
+func TestPlayerCmd(t *testing.T) {
+	t.Run("newgame", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		bot := NewStubBot()
+		p1 := NewPlayer(db, PlayerID(123), "abc")

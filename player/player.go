@@ -1,20 +1,15 @@
 package player
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/tumypmyp/chess/game"
-	"github.com/tumypmyp/chess/leaderboard"
-	"github.com/tumypmyp/chess/memory"
 	. "github.com/tumypmyp/chess/helpers"
+	"github.com/tumypmyp/chess/memory"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Player struct {
@@ -106,6 +101,7 @@ func SendStatus(db memory.Memory, bot Sender, g game.Game) {
 		Send(id, g.String(), makeKeyboard(g), bot)
 	}
 }
+
 func Send(chatID int64, text string, keyboard tgbotapi.InlineKeyboardMarkup, bot Sender) {
 	msg := tgbotapi.NewMessage(chatID, text)
 	msg.ReplyMarkup = keyboard
@@ -132,56 +128,38 @@ func makeKeyboard(g game.Game) tgbotapi.InlineKeyboardMarkup {
 	}
 }
 
+type NoSuchPlayerError struct{}
 
-func  doNewGame(db memory.Memory, bot Sender, p *Player, cmd string) (r Response, err error) {
+func (n NoSuchPlayerError) Error() string { return "can not find player" }
+
+func cmdToPlayersID(db memory.Memory, cmd string) (playersID []PlayerID, err error) {
 	others := make([]string, 3)
 	n, _ := fmt.Sscanf(cmd, "/newgame @%v @%v @%v", &others[0], &others[1], &others[2])
 	others = others[:n]
-	var players []PlayerID
+
 	for _, p2 := range others {
 		var clientID int64
 		key := fmt.Sprintf("username:%v", p2)
 		if err = db.Get(key, &clientID); err != nil {
-			return Response{}, fmt.Errorf("cant find player @%v", p2)
+			return playersID, NoSuchPlayerError{}
 		}
 
 		id := PlayerID(clientID)
-
-		// var player Player
-		// if err := player.Get(id, db); err != nil {
-		// 	id.ChatID = clientID
-		// 	player.Get(id, db)
-		// }
-		players = append(players, id)
+		playersID = append(playersID, id)
 	}
+
+	return playersID, nil
+}
+
+func doNewGame(db memory.Memory, bot Sender, p *Player, cmd string) (r Response, err error) {
+	players, err := cmdToPlayersID(db, cmd)
 	g := p.NewGame(db, bot, players...)
-	return Response{Text:g.String()}, nil
+	return Response{Text: g.String()}, err
 }
 
 type NoConnectionError struct{}
 
 func (n NoConnectionError) Error() string { return "can not connect to leaderboard" }
-
-func (p *Player) getLeaderboard(bot Sender) (Response, error) {
-	conn, err := grpc.Dial("leaderboard:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-	defer conn.Close()
-	c := leaderboard.NewLeaderboardClient(conn)
-
-	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := c.GetLeaderboard(ctx, &leaderboard.Player{Name: "Vova"})
-	if err != nil {
-		return Response{Text: NoConnectionError{}.Error()}, NoConnectionError{}
-
-	}
-	log.Printf("Greeting: %s", r.GetS())
-	// p.Send(r.GetS(), bot)
-	return Response{Text: r.GetS()}, nil
-}
 
 type NoSuchCommandError struct {
 	cmd string
@@ -198,7 +176,7 @@ func (p *Player) Cmd(db memory.Memory, bot Sender, cmd *tgbotapi.Message) (r Res
 	case newgame:
 		r, err = doNewGame(db, bot, p, cmd.Text)
 	case leaderboard:
-		r, err = p.getLeaderboard(bot)
+		r, err = getLeaderboard(*p)
 	default:
 		err = NoSuchCommandError{cmd.Command()}
 		r.Text = err.Error()
@@ -210,7 +188,7 @@ func (p *Player) Do(db memory.Memory, bot Sender, cmd string) (r Response, err e
 	r, err = p.Do2(db, bot, cmd)
 	if err != nil {
 		return Response{Text: err.Error()}, err
-	// 	p.Send(err.Error(), bot)
+		// 	p.Send(err.Error(), bot)
 	}
 	return
 }
@@ -222,7 +200,7 @@ func (p *Player) Do2(db memory.Memory, bot Sender, cmd string) (Response, error)
 	if strings.HasPrefix(cmd, pref) {
 		return doNewGame(db, bot, p, cmd)
 	} else if strings.HasPrefix(cmd, leaderboard) {
-		return p.getLeaderboard(bot)
+		return getLeaderboard(*p)
 	} else {
 		return Response{}, p.Move(db, bot, cmd)
 	}
