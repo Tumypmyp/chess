@@ -56,7 +56,7 @@ func (p *Player) AddNewGame(gameID int64) {
 func (p *Player) NewGame(db memory.Memory, bot Sender, players ...PlayerID) (current_game game.Game) {
 	players = append([]PlayerID{p.ID}, players...)
 
-	current_game = game.NewGame(db, bot, players...)
+	current_game = game.NewGame(db, players...)
 
 	for _, id := range players {
 		p, err := GetPlayer(id, db)
