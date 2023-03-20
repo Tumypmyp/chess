@@ -3,7 +3,6 @@ package player
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/tumypmyp/chess/game"
 	. "github.com/tumypmyp/chess/helpers"
@@ -92,46 +91,42 @@ func doNewGame(db memory.Memory, p *Player, cmd string) ([]Response, error) {
 	return NewGame(db, players...), err
 }
 
-
 // add p.Update()
 
-func (p *Player) Move(db memory.Memory, bot Sender, move string) error {
+func (p *Player) Move(db memory.Memory, move string) ([]Response, error) {
 	game, err := p.CurrentGame(db)
 	if err != nil {
-		return err
+		return []Response{{Text:err.Error()}}, err
 	}
 	if err = game.Move(p.ID, move); err != nil {
-		return err
+		return []Response{{Text:err.Error()}}, err
 	}
 	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
-		return fmt.Errorf("could not reach db: %w", err)
+		return []Response{{Text:err.Error()}}, fmt.Errorf("could not reach db: %w", err)
 	}
-	SendStatus(game)
-	return nil
+	return SendStatus(game), nil
+	
 }
-
 
 // sends status to all players
 func SendStatus(g game.Game) (r []Response) {
 	for _, _ = range g.ChatsID {
-		r = append(r, Response{Text:g.String(), Keyboard: makeGameKeyboard(g)})
+		r = append(r, Response{Text: g.String(), Keyboard: makeGameKeyboard(g)})
 	}
 	return
 }
 
 func makeGameKeyboard(g game.Game) (keyboard [][]Button) {
 	keyboard = make([][]Button, len(g.Board))
-	
+
 	for i, v := range g.Board {
 		keyboard[i] = make([]Button, len(g.Board[i]))
 		for j, _ := range v {
 			keyboard[i][j] = Button{g.Board[i][j].String(), fmt.Sprintf("%d%d", i, j)}
 		}
 	}
-	return 
+	return
 }
-
-
 
 type NoConnectionError struct{}
 
@@ -144,7 +139,7 @@ type NoSuchCommandError struct {
 func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
 
 // runs a command by player
-func (p *Player) Cmd(db memory.Memory, bot Sender, cmd *tgbotapi.Message) (r []Response, err error) {
+func (p *Player) Cmd(db memory.Memory, cmd *tgbotapi.Message) (r []Response, err error) {
 	newgame := "newgame"
 	leaderboard := "leaderboard"
 
@@ -157,31 +152,15 @@ func (p *Player) Cmd(db memory.Memory, bot Sender, cmd *tgbotapi.Message) (r []R
 		err = err2
 	default:
 		err = NoSuchCommandError{cmd.Command()}
-		r = []Response{Response{Text:err.Error()}}
+		r = []Response{Response{Text: err.Error()}}
 	}
 	return
 }
 
-func (p *Player) Do(db memory.Memory, bot Sender, cmd string) (r Response, err error) {
-	r, err = p.Do2(db, bot, cmd)
-	if err != nil {
-		return Response{Text: err.Error()}, err
-		// 	p.Send(err.Error(), bot)
-	}
-	return
-}
+func (p *Player) Do(db memory.Memory, cmd string) ([]Response, error) {
+	log.Println(cmd)
+	return p.Move(db, cmd)
 
-func (p *Player) Do2(db memory.Memory, bot Sender, cmd string) (Response, error) {
-	pref := "/newgame"
-	leaderboard := "/leaderboard"
-
-	if strings.HasPrefix(cmd, pref) {
-		return Response{}, nil
-	} else if strings.HasPrefix(cmd, leaderboard) {
-		return getLeaderboard(*p)
-	} else {
-		return Response{}, p.Move(db, bot, cmd)
-	}
 }
 
 // Update memory.Memory with new value of a player

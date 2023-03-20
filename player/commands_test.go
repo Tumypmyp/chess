@@ -3,9 +3,9 @@ package player
 import (
 	"testing"
 
-	"github.com/tumypmyp/chess/memory"
 	. "github.com/tumypmyp/chess/helpers"
-	
+	"github.com/tumypmyp/chess/memory"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -30,7 +30,7 @@ func TestPlayerDo(t *testing.T) {
 			Text: "11",
 		}}
 
-		_, err = Do(update, db, bot, cmd)
+		_, err = Do(update, db, bot, "11")
 		AssertNoError(t, err)
 		// AssertInt(t, bot.Len(), 2)
 

@@ -2,9 +2,9 @@ package player
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
-	"fmt"
 
 	. "github.com/tumypmyp/chess/helpers"
 	"github.com/tumypmyp/chess/leaderboard"
@@ -20,10 +20,11 @@ func Do(update tgbotapi.Update, db memory.Memory, bot Sender, cmd string) ([]Res
 	log.Println("player:", player)
 	log.Println("message:", update.Message)
 	if update.Message != nil && update.Message.IsCommand() {
-		return player.Cmd(db, bot, update.Message)
+		return player.Cmd(db, update.Message)
 	}
-	r, err := player.Do(db, bot, cmd)
-	return []Response{r}, err
+	r, err := player.Do(db, cmd)
+	log.Println(r, err,cmd)
+	return r, err
 }
 
 func getPlayerByID(id int64, username string, db memory.Memory) (player Player) {
