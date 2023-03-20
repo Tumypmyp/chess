@@ -67,7 +67,7 @@ func (p *Player) NewGame(db memory.Memory, bot Sender, players ...PlayerID) (cur
 		p.Store(db)
 	}
 
-	current_game.SendStatus(db, bot)
+	SendStatus(db, bot, current_game)
 	*p, _ = GetPlayer(p.ID, db)
 	return
 }
@@ -85,7 +85,7 @@ func (p *Player) Move(db memory.Memory, bot Sender, move string) error {
 	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
 		return fmt.Errorf("could not reach db: %w", err)
 	}
-	game.SendStatus(db, bot)
+	SendStatus(db, bot, game)
 	return nil
 }
 
@@ -97,6 +97,38 @@ func (p Player) Send(text string, bot Sender) {
 	}
 	if _, err := bot.Send(msg); err != nil {
 		log.Printf("cant send: %v", err)
+	}
+}
+
+// sends status to all players
+func SendStatus(db memory.Memory, bot Sender, g game.Game) {
+	for _, id := range g.ChatsID {
+		Send(id, g.String(), makeKeyboard(g), bot)
+	}
+}
+func Send(chatID int64, text string, keyboard tgbotapi.InlineKeyboardMarkup, bot Sender) {
+	msg := tgbotapi.NewMessage(chatID, text)
+	msg.ReplyMarkup = keyboard
+	if bot == nil {
+		return
+	}
+	if _, err := bot.Send(msg); err != nil {
+		log.Printf("cant send: %v", err)
+	}
+}
+
+// make inline keyboard for game
+func makeKeyboard(g game.Game) tgbotapi.InlineKeyboardMarkup {
+	markup := make([][]tgbotapi.InlineKeyboardButton, len(g.Board))
+
+	for i, v := range g.Board {
+		markup[i] = make([]tgbotapi.InlineKeyboardButton, len(g.Board[i]))
+		for j, _ := range v {
+			markup[i][j] = tgbotapi.NewInlineKeyboardButtonData(g.Board[i][j].String(), fmt.Sprintf("%d%d", i, j))
+		}
+	}
+	return tgbotapi.InlineKeyboardMarkup{
+		InlineKeyboard: markup,
 	}
 }
 

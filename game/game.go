@@ -3,9 +3,6 @@ package game
 import (
 	"errors"
 	"fmt"
-	"log"
-
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/tumypmyp/chess/memory"
 	. "github.com/tumypmyp/chess/helpers"
 )
@@ -63,7 +60,7 @@ type Game struct {
 	Board [3][3]Mark `json:"board"`
 }
 
-func NewGame(db memory.Memory, bot Sender, players ...PlayerID) Game {
+func NewGame(db memory.Memory, players ...PlayerID) Game {
 	ID, err := db.Incr("gameID")
 	if err != nil {
 		// log.Printf("cant restore id %v", err)
@@ -85,38 +82,9 @@ func NewGame(db memory.Memory, bot Sender, players ...PlayerID) Game {
 func (g *Game) AddChat(chatID int64) {
 	g.ChatsID = append(g.ChatsID, chatID)
 }
-// sends status to all players
-func (g Game) SendStatus(db memory.Memory, bot Sender) {
-	for _, id := range g.ChatsID {
-		Send(id, g.String(), makeKeyboard(g), bot)
-	}
-}
 
-// make inline keyboard for game
-func makeKeyboard(g Game) tgbotapi.InlineKeyboardMarkup {
-	markup := make([][]tgbotapi.InlineKeyboardButton, len(g.Board))
 
-	for i, v := range g.Board {
-		markup[i] = make([]tgbotapi.InlineKeyboardButton, len(g.Board[i]))
-		for j, _ := range v {
-			markup[i][j] = tgbotapi.NewInlineKeyboardButtonData(g.Board[i][j].String(), fmt.Sprintf("%d%d", i, j))
-		}
-	}
-	return tgbotapi.InlineKeyboardMarkup{
-		InlineKeyboard: markup,
-	}
-}
 
-func Send(chatID int64, text string, keyboard tgbotapi.InlineKeyboardMarkup, bot Sender) {
-	msg := tgbotapi.NewMessage(chatID, text)
-	msg.ReplyMarkup = keyboard
-	if bot == nil {
-		return
-	}
-	if _, err := bot.Send(msg); err != nil {
-		log.Printf("cant send: %v", err)
-	}
-}
 
 // Returns string representation of a game
 func (g Game) String() (s string) {

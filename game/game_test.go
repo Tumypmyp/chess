@@ -10,7 +10,7 @@ func TestGame(t *testing.T) {
 	t.Run("move", func(t *testing.T) {
 		db := memory.NewStubDatabase()
 		player := PlayerID(12)
-		game := NewGame(db, nil, player)
+		game := NewGame(db, player)
 		err := game.Move(player, "00")
 		AssertNoError(t, err)
 
@@ -30,7 +30,7 @@ func TestGame(t *testing.T) {
 		db := mem
 		p1 := PlayerID(12)
 		p2 := PlayerID(13)
-		game := NewGame(db, nil, p1, p2)
+		game := NewGame(db, p1, p2)
 
 		err := game.Move(p1, "00")
 		AssertNoError(t, err)
@@ -61,7 +61,7 @@ func TestGame(t *testing.T) {
 	t.Run("game status", func(t *testing.T) {
 		db := memory.NewStubDatabase()
 		player := PlayerID(12)
-		game := NewGame(db, nil, player)
+		game := NewGame(db, player)
 		AssertStatus(t, game.Status, Started)
 
 		err := game.Move(player, "00")
@@ -76,15 +76,12 @@ func TestGame(t *testing.T) {
 
 	t.Run("add chat", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := NewStubBot()
 		player := PlayerID(12)
-		game := NewGame(db, bot, player)
+		game := NewGame(db, player)
 		AssertStatus(t, game.Status, Started)
 		game.AddChat(1234)
 		AssertInt(t, int64(len(game.ChatsID)), 2)
 		t.Logf("%+v", game.ChatsID)
-		game.SendStatus(db, bot)
-		AssertInt(t, bot.Len(), 2)
 	})
 	
 }
