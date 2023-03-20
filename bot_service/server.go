@@ -38,34 +38,28 @@ func main() {
 			continue
 		}
 
-		var resp []helpers.Response
+		var text string
 		if update.Message != nil {
-			text := update.Message.Text
-			resp, _ = pl.Do(update, db, bot, text)
-
+			text = update.Message.Text
 		} else if update.CallbackQuery != nil {
-			// Respond to the callback query, telling Telegram to show the user
-			// a message with the data received.
 			callback := tgbotapi.NewCallback(update.CallbackQuery.ID, "")
 			if _, err := bot.Request(callback); err != nil {
 				log.Println(err)
 			}
-			text := update.CallbackQuery.Data
-			resp, _ = pl.Do(update, db, bot, text)
+			text = update.CallbackQuery.Data
 		}
+
+		resp, _ := pl.Do(update, db, bot, text)
 		for _, r := range resp {
-			log.Println(r)
-			Send(update.SentFrom().ID, r.Text, makeKeyboard(r.Keyboard), bot)
+			sendResponse(update.SentFrom().ID, r, bot)
 		}
 	}
 }
 
-func Send(chatID int64, text string, keyboard tgbotapi.InlineKeyboardMarkup, bot helpers.Sender) {
-	msg := tgbotapi.NewMessage(chatID, text)
-	msg.ReplyMarkup = keyboard
-	if bot == nil {
-		return
-	}
+func sendResponse(chatID int64, r helpers.Response, bot helpers.Sender) {
+	msg := tgbotapi.NewMessage(r.ChatID, r.Text)
+	msg.ReplyMarkup = makeKeyboard(r.Keyboard)
+
 	if _, err := bot.Send(msg); err != nil {
 		log.Printf("cant send: %v", err)
 	}
@@ -79,7 +73,7 @@ func makeKeyboard(keyboard [][]helpers.Button) tgbotapi.InlineKeyboardMarkup {
 	for i, v := range keyboard {
 		markup[i] = make([]tgbotapi.InlineKeyboardButton, len(keyboard[i]))
 		for j, _ := range v {
-			markup[i][j] = tgbotapi.NewInlineKeyboardButtonData(keyboard[i][j].Text, keyboard[i][j].CallbackData) //fmt.Sprintf("%d%d", i, j))
+			markup[i][j] = tgbotapi.NewInlineKeyboardButtonData(keyboard[i][j].Text, keyboard[i][j].CallbackData)
 		}
 	}
 	return tgbotapi.InlineKeyboardMarkup{

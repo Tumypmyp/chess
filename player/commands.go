@@ -16,20 +16,27 @@ import (
 )
 
 func Do(update tgbotapi.Update, db memory.Memory, bot Sender, cmd string) ([]Response, error) {
-	player := getPlayerByID(update.SentFrom().ID, update.SentFrom().UserName, db)
+	player := makePlayer(update.SentFrom().ID, update.SentFrom().UserName, db)
 	log.Println("player:", player)
 	log.Println("message:", update.Message)
 	if update.Message != nil && update.Message.IsCommand() {
-		return Cmd(db, update.Message, player)
+		return Cmd(db, update.Message, player, update.FromChat().ID)
 	}
-	r, err := player.Do(db, cmd)
+	r, err := player.Do(db, cmd, update.FromChat().ID)
 	log.Println(r, err,cmd)
 	return r, err
 }
 
 
+
+type NoSuchCommandError struct {
+	cmd string
+}
+
+func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
+
 // runs a command by player
-func  Cmd(db memory.Memory, cmd *tgbotapi.Message, p Player) (r []Response, err error) {
+func  Cmd(db memory.Memory, cmd *tgbotapi.Message, p Player, ChatID int64) (r []Response, err error) {
 	newgame := "newgame"
 	leaderboard := "leaderboard"
 
@@ -42,21 +49,23 @@ func  Cmd(db memory.Memory, cmd *tgbotapi.Message, p Player) (r []Response, err 
 		err = err2
 	default:
 		err = NoSuchCommandError{cmd.Command()}
-		r = []Response{Response{Text: err.Error()}}
+		r = []Response{{Text: err.Error(), ChatID : ChatID}}
 	}
 	return
 }
 
-func getPlayerByID(id int64, username string, db memory.Memory) (player Player) {
+// get or create new player
+func makePlayer(id int64, username string, db memory.Memory) (player Player) {
 	ID := PlayerID(id)
 	var err error
-	if player, err = GetPlayer(ID, db); err != nil {
+	if player, err = getPlayer(ID, db); err != nil {
 		player = NewPlayer(db, ID, username)
 	}
 	return
 }
 
-func GetPlayer(ID PlayerID, m memory.Memory) (p Player, err error) {
+// get player from memory
+func getPlayer(ID PlayerID, m memory.Memory) (p Player, err error) {
 	key := fmt.Sprintf("user:%d", ID)
 	if err = m.Get(key, &p); err != nil {
 		return p, fmt.Errorf("can not get player by id: %w", err)
@@ -64,6 +73,12 @@ func GetPlayer(ID PlayerID, m memory.Memory) (p Player, err error) {
 	return
 }
 
+
+type NoConnectionError struct{}
+
+func (n NoConnectionError) Error() string { return "can not connect to leaderboard" }
+
+// get leaderboard with gRPC call
 func getLeaderboard(p Player) (Response, error) {
 	conn, err := grpc.Dial("leaderboard:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

@@ -30,7 +30,7 @@ type NoCurrentGameError struct{}
 func (n NoCurrentGameError) Error() string { return "no current game,\ntry: /newgame" }
 
 func (p *Player) CurrentGame(db memory.Memory) (game game.Game, err error) {
-	*p, err = GetPlayer(p.ID, db)
+	*p, err = getPlayer(p.ID, db)
 	if err != nil {
 		return
 	}
@@ -49,7 +49,7 @@ func NewGame(db memory.Memory, players ...PlayerID) []Response {
 	current_game := game.NewGame(db, players...)
 
 	for _, id := range players {
-		p, err := GetPlayer(id, db)
+		p, err := getPlayer(id, db)
 		if err != nil {
 			log.Println("no such player", id)
 		}
@@ -91,16 +91,16 @@ func doNewGame(db memory.Memory, p Player, cmd string) ([]Response, error) {
 
 // add p.Update()
 
-func (p *Player) Move(db memory.Memory, move string) ([]Response, error) {
+func (p *Player) Do(db memory.Memory, move string, chatID int64) ([]Response, error) {
 	game, err := p.CurrentGame(db)
 	if err != nil {
-		return []Response{{Text:err.Error()}}, err
+		return []Response{{Text:err.Error(), ChatID : chatID}}, err
 	}
 	if err = game.Move(p.ID, move); err != nil {
-		return []Response{{Text:err.Error()}}, err
+		return []Response{{Text:err.Error(), ChatID : chatID}}, err
 	}
 	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
-		return []Response{{Text:err.Error()}}, fmt.Errorf("could not reach db: %w", err)
+		return []Response{{Text:err.Error(), ChatID : chatID}}, fmt.Errorf("could not reach db: %w", err)
 	}
 	return SendStatus(game), nil
 	
@@ -108,8 +108,8 @@ func (p *Player) Move(db memory.Memory, move string) ([]Response, error) {
 
 // sends status to all players
 func SendStatus(g game.Game) (r []Response) {
-	for _, _ = range g.ChatsID {
-		r = append(r, Response{Text: g.String(), Keyboard: makeGameKeyboard(g)})
+	for _, id := range g.ChatsID {
+		r = append(r, Response{Text: g.String(), Keyboard: makeGameKeyboard(g), ChatID: id})
 	}
 	return
 }
@@ -126,22 +126,6 @@ func makeGameKeyboard(g game.Game) (keyboard [][]Button) {
 	return
 }
 
-type NoConnectionError struct{}
-
-func (n NoConnectionError) Error() string { return "can not connect to leaderboard" }
-
-type NoSuchCommandError struct {
-	cmd string
-}
-
-func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
-
-
-func (p *Player) Do(db memory.Memory, cmd string) ([]Response, error) {
-	log.Println(cmd)
-	return p.Move(db, cmd)
-
-}
 
 // Update memory.Memory with new value of a player
 func (p Player) Store(m memory.Memory) error {
