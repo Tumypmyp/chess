@@ -10,20 +10,20 @@ import (
 	"github.com/tumypmyp/chess/game"
 	"github.com/tumypmyp/chess/leaderboard"
 	"github.com/tumypmyp/chess/memory"
+	. "github.com/tumypmyp/chess/helpers"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-
 type Player struct {
-	ID       game.PlayerID
+	ID       PlayerID
 	GamesID  []int64 `json:"gamesID"`
 	Username string  `json:"username"`
 }
 
-func NewPlayer(db memory.Memory, ID game.PlayerID, Username string) Player {
+func NewPlayer(db memory.Memory, ID PlayerID, Username string) Player {
 	p := Player{
 		ID:       ID,
 		Username: Username,
@@ -53,8 +53,8 @@ func (p *Player) AddNewGame(gameID int64) {
 	p.GamesID = append(p.GamesID, gameID)
 }
 
-func (p *Player) NewGame(db memory.Memory, bot game.Sender, players ...game.PlayerID) (current_game game.Game) {
-	players = append([]game.PlayerID{p.ID}, players...)
+func (p *Player) NewGame(db memory.Memory, bot Sender, players ...PlayerID) (current_game game.Game) {
+	players = append([]PlayerID{p.ID}, players...)
 
 	current_game = game.NewGame(db, bot, players...)
 
@@ -74,7 +74,7 @@ func (p *Player) NewGame(db memory.Memory, bot game.Sender, players ...game.Play
 
 // add p.Update()
 
-func (p *Player) Move(db memory.Memory, bot game.Sender, move string) error {
+func (p *Player) Move(db memory.Memory, bot Sender, move string) error {
 	game, err := p.CurrentGame(db)
 	if err != nil {
 		return err
@@ -89,7 +89,7 @@ func (p *Player) Move(db memory.Memory, bot game.Sender, move string) error {
 	return nil
 }
 
-func (p Player) Send(text string, bot game.Sender) {
+func (p Player) Send(text string, bot Sender) {
 	msg := tgbotapi.NewMessage(int64(p.ID), text)
 
 	if bot == nil {
@@ -100,51 +100,20 @@ func (p Player) Send(text string, bot game.Sender) {
 	}
 }
 
-// func (p *Player) StartNewGame(db memory.Memory, bot game.Sender, entities []tgbotapi.MessageEntity) (err error) {
 
-// 	var players []game.PlayerID
-// 	for _, e := range entities {
-// 		log.Println("entity", e)
-// 		log.Println("user", e.User)
-		
-// 		if e.IsMention() {
-
-// 		} else if e.IsTextMention() {
-
-// 		}
-// 		var clientID int64
-// 		// key := fmt.Sprintf("username:%v", p2)
-// 		// if err = db.Get(key, &clientID); err != nil {
-// 		// 	return fmt.Errorf("cant find player @%v", p2)
-// 		// }
-
-// 		id := game.PlayerID(clientID)
-
-// 		// var player Player
-// 		// if err := player.Get(id, db); err != nil {
-// 		// 	id.ChatID = clientID
-// 		// 	player.Get(id, db)
-// 		// }
-// 		players = append(players, id)
-// 	}
-// 	p.NewGame(db, bot, players...)
-// 	return
-// }
-
-
-func (p *Player) DoNewGame(db memory.Memory, bot game.Sender, cmd string) (err error) {
+func  doNewGame(db memory.Memory, bot Sender, p *Player, cmd string) (r Response, err error) {
 	others := make([]string, 3)
 	n, _ := fmt.Sscanf(cmd, "/newgame @%v @%v @%v", &others[0], &others[1], &others[2])
 	others = others[:n]
-	var players []game.PlayerID
+	var players []PlayerID
 	for _, p2 := range others {
 		var clientID int64
 		key := fmt.Sprintf("username:%v", p2)
 		if err = db.Get(key, &clientID); err != nil {
-			return fmt.Errorf("cant find player @%v", p2)
+			return Response{}, fmt.Errorf("cant find player @%v", p2)
 		}
 
-		id := game.PlayerID(clientID)
+		id := PlayerID(clientID)
 
 		// var player Player
 		// if err := player.Get(id, db); err != nil {
@@ -153,17 +122,15 @@ func (p *Player) DoNewGame(db memory.Memory, bot game.Sender, cmd string) (err e
 		// }
 		players = append(players, id)
 	}
-	p.NewGame(db, bot, players...)
-	return
+	g := p.NewGame(db, bot, players...)
+	return Response{Text:g.String()}, nil
 }
 
-
-type NoConnectionError struct {}
+type NoConnectionError struct{}
 
 func (n NoConnectionError) Error() string { return "can not connect to leaderboard" }
 
-
-func (p *Player) getLeaderboard(bot game.Sender) error {
+func (p *Player) getLeaderboard(bot Sender) (Response, error) {
 	conn, err := grpc.Dial("leaderboard:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -176,12 +143,12 @@ func (p *Player) getLeaderboard(bot game.Sender) error {
 	defer cancel()
 	r, err := c.GetLeaderboard(ctx, &leaderboard.Player{Name: "Vova"})
 	if err != nil {
-		return NoConnectionError{}
+		return Response{Text: NoConnectionError{}.Error()}, NoConnectionError{}
 
 	}
 	log.Printf("Greeting: %s", r.GetS())
-	p.Send(r.GetS(), bot)
-	return nil
+	// p.Send(r.GetS(), bot)
+	return Response{Text: r.GetS()}, nil
 }
 
 type NoSuchCommandError struct {
@@ -191,46 +158,43 @@ type NoSuchCommandError struct {
 func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
 
 // runs a command by player
-func (p *Player) Cmd(db memory.Memory, bot game.Sender, cmd *tgbotapi.Message) (err error) {
+func (p *Player) Cmd(db memory.Memory, bot Sender, cmd *tgbotapi.Message) (r Response, err error) {
 	newgame := "newgame"
 	leaderboard := "leaderboard"
+
 	switch cmd.Command() {
 	case newgame:
-		err = p.DoNewGame(db, bot, cmd.Text)
+		r, err = doNewGame(db, bot, p, cmd.Text)
 	case leaderboard:
-		err = p.getLeaderboard(bot)
+		r, err = p.getLeaderboard(bot)
 	default:
 		err = NoSuchCommandError{cmd.Command()}
-	}
-	if err != nil {
-		p.Send(err.Error(), bot)
+		r.Text = err.Error()
 	}
 	return
 }
 
-func (p *Player) Do(db memory.Memory, bot game.Sender, cmd string) error {
-	err := p.Do2(db, bot, cmd)
+func (p *Player) Do(db memory.Memory, bot Sender, cmd string) (r Response, err error) {
+	r, err = p.Do2(db, bot, cmd)
 	if err != nil {
-		p.Send(err.Error(), bot)
+		return Response{Text: err.Error()}, err
+	// 	p.Send(err.Error(), bot)
 	}
-	return err
+	return
 }
 
-func (p *Player) Do2(db memory.Memory, bot game.Sender, cmd string) error {
+func (p *Player) Do2(db memory.Memory, bot Sender, cmd string) (Response, error) {
 	pref := "/newgame"
 	leaderboard := "/leaderboard"
 
 	if strings.HasPrefix(cmd, pref) {
-		return p.DoNewGame(db, bot, cmd)
+		return doNewGame(db, bot, p, cmd)
 	} else if strings.HasPrefix(cmd, leaderboard) {
 		return p.getLeaderboard(bot)
 	} else {
-		return p.Move(db, bot, cmd)
+		return Response{}, p.Move(db, bot, cmd)
 	}
 }
-
-
-
 
 // Update memory.Memory with new value of a player
 func (p Player) Store(m memory.Memory) error {

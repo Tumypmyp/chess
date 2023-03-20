@@ -7,6 +7,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/tumypmyp/chess/memory"
+	. "github.com/tumypmyp/chess/helpers"
 )
 
 type Mark int

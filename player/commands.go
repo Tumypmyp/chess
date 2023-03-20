@@ -4,7 +4,8 @@ import (
 	"log"
 
 	"fmt"
-	"github.com/tumypmyp/chess/game"
+	
+	. "github.com/tumypmyp/chess/helpers"
 	"github.com/tumypmyp/chess/memory"
 	
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -12,7 +13,7 @@ import (
 
 
 
-func Do(update tgbotapi.Update, db memory.Memory, bot game.Sender, cmd string) error {
+func Do(update tgbotapi.Update, db memory.Memory, bot Sender, cmd string) (Response, error) {
 	player := getPlayerByID(update.SentFrom().ID, update.SentFrom().UserName, db)
 	log.Println("player:", player)
 	log.Println("message", update.Message)
@@ -23,7 +24,7 @@ func Do(update tgbotapi.Update, db memory.Memory, bot game.Sender, cmd string) e
 }
 
 func getPlayerByID(id int64, username string, db memory.Memory) (player Player) {
-	ID := game.PlayerID(id)
+	ID := PlayerID(id)
 	var err error
 	if player, err = GetPlayer(ID, db); err != nil {
 		player = NewPlayer(db, ID, username)
@@ -31,7 +32,7 @@ func getPlayerByID(id int64, username string, db memory.Memory) (player Player) 
 	return
 }
 
-func GetPlayer(ID game.PlayerID, m memory.Memory) (p Player, err error) {
+func GetPlayer(ID PlayerID, m memory.Memory) (p Player, err error) {
 	key := fmt.Sprintf("user:%d", ID)
 	if err = m.Get(key, &p); err != nil {
 		return p, fmt.Errorf("can not get player by id: %w", err)

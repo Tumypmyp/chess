@@ -5,7 +5,7 @@ import (
 
 	g "github.com/tumypmyp/chess/game"
 	"github.com/tumypmyp/chess/memory"
-	"github.com/tumypmyp/chess/helpers"
+	. "github.com/tumypmyp/chess/helpers"
 	
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -14,7 +14,7 @@ func TestPlayer(t *testing.T) {
 	t.Run("move player", func(t *testing.T) {
 		mem := memory.NewStubDatabase()
 		db := mem
-		p := NewPlayer(db, g.PlayerID(123), "pl")
+		p := NewPlayer(db, PlayerID(123), "pl")
 
 		p.NewGame(db, nil)
 
@@ -37,7 +37,7 @@ func TestPlayer(t *testing.T) {
 	})
 	t.Run("new game", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		p := NewPlayer(db, g.PlayerID(123), "pl")
+		p := NewPlayer(db, PlayerID(123), "pl")
 
 		p.NewGame(db, nil)
 
@@ -66,7 +66,7 @@ func TestPlayer(t *testing.T) {
 		db := memory.NewStubDatabase()
 		db.Set("gameID", int64(9))
 
-		p := NewPlayer(db, g.PlayerID(123), "pl")
+		p := NewPlayer(db, PlayerID(123), "pl")
 
 		p.NewGame(db, nil)
 		p, err := GetPlayer(p.ID, db)
@@ -86,7 +86,7 @@ func TestPlayer(t *testing.T) {
 	})
 	t.Run(".NewGame updates player", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		id := g.PlayerID(123456)
+		id := PlayerID(123456)
 		p := NewPlayer(db, id, "pl")
 
 		p.NewGame(db, nil)
@@ -99,7 +99,7 @@ func TestPlayer(t *testing.T) {
 	t.Run("current game updates player", func(t *testing.T) {
 		mem := memory.NewStubDatabase()
 		db := mem
-		id := g.PlayerID(123456)
+		id := PlayerID(123456)
 		p := NewPlayer(db, id, "pl")
 
 		p.NewGame(db, nil, id)
@@ -111,8 +111,8 @@ func TestPlayer(t *testing.T) {
 		
 	t.Run("2 players play in turns", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		p1 := NewPlayer(db, g.PlayerID(12), "pl12")
-		p2 := NewPlayer(db, g.PlayerID(13), "pl13")
+		p1 := NewPlayer(db, PlayerID(12), "pl12")
+		p2 := NewPlayer(db, PlayerID(13), "pl13")
 		p1.NewGame(db, nil, p2.ID)
 
 		var err error
@@ -125,41 +125,41 @@ func TestPlayer(t *testing.T) {
 
 	t.Run("do", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		id := g.PlayerID(123)
-		p := NewPlayer(db, g.PlayerID(123), "pl")
+		id := PlayerID(123)
+		p := NewPlayer(db, PlayerID(123), "pl")
 
 		var err error
-		err = p.Do(db, nil, "/newgame")
+		_, err = p.Do(db, nil, "/newgame")
 		AssertNoError(t, err)
 
 		p, err = GetPlayer(id, db)
 		AssertNoError(t, err)
 
-		_, err = GetPlayer(g.PlayerID(456), db)
+		_, err = GetPlayer(PlayerID(456), db)
 		AssertError(t, err)
 
 		_, err = p.CurrentGame(db)
 		AssertNoError(t, err)
 
-		err = p.Do(db, nil, "/123")
+		_, err = p.Do(db, nil, "/123")
 		AssertError(t, err)
 	})
 	t.Run("do move", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		player := NewPlayer(db, g.PlayerID(12), "pl")
+		player := NewPlayer(db, PlayerID(12), "pl")
 		game := player.NewGame(db, nil)
 		player, err := GetPlayer(player.ID, db)
 		AssertNoError(t, err)
 		t.Log(db.DB)
 		t.Log(player)
-		err = player.Do(db, nil, "00")
+		_, err = player.Do(db, nil, "00")
 		AssertNoError(t, err)
 
 		game, err = player.CurrentGame(db)
 		AssertNoError(t, err)
 
 		board := [3][3]g.Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
-		want := g.Game{PlayersID: []g.PlayerID{player.ID},
+		want := g.Game{PlayersID: []PlayerID{player.ID},
 			Description:   "@12 ",
 			CurrentPlayer: 0,
 			ChatsID: []int64{12},
@@ -170,11 +170,11 @@ func TestPlayer(t *testing.T) {
 	t.Run("do start game with other", func(t *testing.T) {
 		mem := memory.NewStubDatabase()
 		db := mem
-		p1 := NewPlayer(db, g.PlayerID(123), "abc")
-		p2 := NewPlayer(db, g.PlayerID(456), "def")
+		p1 := NewPlayer(db, PlayerID(123), "abc")
+		p2 := NewPlayer(db, PlayerID(456), "def")
 
 		var err error
-		err = p1.Do(db, nil, "/newgame @"+p2.Username)
+		_, err = p1.Do(db, nil, "/newgame @"+p2.Username)
 		AssertNoError(t, err)
 
 		_, err = p1.CurrentGame(db)
@@ -186,8 +186,8 @@ func TestPlayer(t *testing.T) {
 	})
 	t.Run("start game with other", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		p1 := NewPlayer(db, g.PlayerID(123), "abc")
-		p2 := NewPlayer(db, g.PlayerID(456), "def")
+		p1 := NewPlayer(db, PlayerID(123), "abc")
+		p2 := NewPlayer(db, PlayerID(456), "def")
 
 		p1.NewGame(db, nil, p2.ID)
 
@@ -200,12 +200,12 @@ func TestPlayer(t *testing.T) {
 	})
 	t.Run("start game with 2 others", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		p1 := NewPlayer(db, g.PlayerID(123), "abc")
-		p2 := NewPlayer(db, g.PlayerID(456), "def")
-		p3 := NewPlayer(db, g.PlayerID(789), "ghi")
+		p1 := NewPlayer(db, PlayerID(123), "abc")
+		p2 := NewPlayer(db, PlayerID(456), "def")
+		p3 := NewPlayer(db, PlayerID(789), "ghi")
 
 		var err error
-		err = p1.Do(db, nil, "/newgame @"+p2.Username+" @"+p3.Username)
+		_, err = p1.Do(db, nil, "/newgame @"+p2.Username+" @"+p3.Username)
 		AssertNoError(t, err)
 
 		_, err = p1.CurrentGame(db)
@@ -219,7 +219,7 @@ func TestPlayer(t *testing.T) {
 
 	t.Run("other player with different chat", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		p := NewPlayer(db, g.PlayerID(123), "pl")
+		p := NewPlayer(db, PlayerID(123), "pl")
 
 		p.NewGame(db, nil)
 
@@ -236,7 +236,7 @@ func TestPlayer(t *testing.T) {
 		want := [3][3]g.Mark{{0, 0, 1}, {0, 0, 0}, {0, 0, 0}}
 		AssertBoard(t, game.Board, want)
 
-		p2 := NewPlayer(db, g.PlayerID(456), "pl")
+		p2 := NewPlayer(db, PlayerID(456), "pl")
 
 		_, err = p2.CurrentGame(db)
 		AssertExactError(t, err, NoCurrentGameError{})
@@ -258,18 +258,18 @@ func TestPlayer(t *testing.T) {
 func TestPlayerResponses(t *testing.T) {
 	t.Run("start player", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := helpers.NewStubBot()
+		bot := NewStubBot()
 
-		p := NewPlayer(db, g.PlayerID(123), "pl")
-		err := p.Do(db, bot, "12")
+		p := NewPlayer(db, PlayerID(123), "pl")
+		r, err := p.Do(db, bot, "12")
 		AssertError(t, err)
-		AssertString(t, bot.Read(), NoCurrentGameError{}.Error())
+		AssertString(t, r.Text, NoCurrentGameError{}.Error())
 	})
 	t.Run("start game with other", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := helpers.NewStubBot()
-		p1 := NewPlayer(db, g.PlayerID(123), "abc")
-		p2 := NewPlayer(db, g.PlayerID(456), "def")
+		bot := NewStubBot()
+		p1 := NewPlayer(db, PlayerID(123), "abc")
+		p2 := NewPlayer(db, PlayerID(456), "def")
 
 		p1.NewGame(db, bot, p2.ID)
 		AssertInt(t, bot.Len(), 2)
@@ -279,10 +279,10 @@ func TestPlayerResponses(t *testing.T) {
 	})
 	t.Run("start game with 2 other", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := helpers.NewStubBot()
-		p1 := NewPlayer(db, g.PlayerID(123), "abc")
-		p2 := NewPlayer(db, g.PlayerID(456), "def")
-		p3 := NewPlayer(db, g.PlayerID(789), "ghi")
+		bot := NewStubBot()
+		p1 := NewPlayer(db, PlayerID(123), "abc")
+		p2 := NewPlayer(db, PlayerID(456), "def")
+		p3 := NewPlayer(db, PlayerID(789), "ghi")
 
 		p1.NewGame(db, bot, p2.ID, p3.ID)
 		AssertInt(t, bot.Len(), 3)
@@ -295,12 +295,12 @@ func TestPlayerResponses(t *testing.T) {
 func TestPlayerCmd(t *testing.T) {
 	t.Run("newgame", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := helpers.NewStubBot()
-		p1 := NewPlayer(db, g.PlayerID(123), "abc")
+		bot := NewStubBot()
+		p1 := NewPlayer(db, PlayerID(123), "abc")
 
 		var err error
 		cmd := "/newgame"
-		err = p1.Cmd(db, bot, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
+		_, err = p1.Cmd(db, bot, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
 					{Type:"bot_command", Offset: 0, Length: len(cmd)},
 				}})
 		AssertNoError(t, err)
@@ -311,40 +311,50 @@ func TestPlayerCmd(t *testing.T) {
 	})
 	t.Run("leaderboard", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := helpers.NewStubBot()
-		p1 := NewPlayer(db, g.PlayerID(123), "abc")
+		// bot := NewStubBot()
+		p1 := NewPlayer(db, PlayerID(123), "abc")
 
 		var err error
 		cmd := "/leaderboard"
-		err = p1.Cmd(db, bot, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
+		r, err := p1.Cmd(db, nil, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
 			{Type:"bot_command", Offset: 0, Length: len(cmd)},
 		}})
 		AssertExactError(t, err, NoConnectionError{})
+		AssertString(t, r.Text, NoConnectionError{}.Error())
 
 		_, err = p1.CurrentGame(db)
 		AssertExactError(t, err, NoCurrentGameError{})
-		AssertInt(t, bot.Len(), 1)
+
 	})
 	t.Run("no such command", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		bot := helpers.NewStubBot()
-		p1 := NewPlayer(db, g.PlayerID(123), "abc")
+		bot := NewStubBot()
+		p1 := NewPlayer(db, PlayerID(123), "abc")
 
-		var err error
 		cmd1 := "/command"
-		err = p1.Cmd(db, bot, &tgbotapi.Message{Text: cmd1, Entities: []tgbotapi.MessageEntity{
+		r, err := p1.Cmd(db, bot, &tgbotapi.Message{Text: cmd1, Entities: []tgbotapi.MessageEntity{
 			{Type:"bot_command", Offset: 0, Length: len(cmd1)},
 		}})
 		AssertExactError(t, err, NoSuchCommandError{"command"})
+		AssertString(t, r.Text, NoSuchCommandError{"command"}.Error())
 
 		cmd2 := "/newgame2"
-		err = p1.Cmd(db, bot, &tgbotapi.Message{Text: cmd2, Entities: []tgbotapi.MessageEntity{
+		r, err = p1.Cmd(db, bot, &tgbotapi.Message{Text: cmd2, Entities: []tgbotapi.MessageEntity{
 			{Type:"bot_command", Offset: 0, Length: len(cmd2)},
 		}})
 		AssertExactError(t, err, NoSuchCommandError{"newgame2"})
+		AssertString(t, r.Text, NoSuchCommandError{"newgame2"}.Error())
 
 		_, err = p1.CurrentGame(db)
 		AssertExactError(t, err, NoCurrentGameError{})
-		AssertInt(t, bot.Len(), 2)
+	})
+
+	t.Run("player do new game", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		p1 := NewPlayer(db, PlayerID(123), "abc")
+
+		r, err := doNewGame(db, nil, &p1, "/newgame")
+		AssertNoError(t, err)
+		AssertString(t, r.Text, "@123 \nStarted\n")
 	})
 }
