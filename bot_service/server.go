@@ -7,7 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/tumypmyp/chess/memory"
 	pl "github.com/tumypmyp/chess/player"
-	g "github.com/tumypmyp/chess/game"
+    "github.com/tumypmyp/chess/helpers"
 )
 
 func NewBot() (bot *tgbotapi.BotAPI) {
@@ -38,10 +38,11 @@ func main() {
 			continue
 		}
 
+		var resp []helpers.Response
 		if update.Message != nil {
 			text := update.Message.Text
-			r, _ := pl.Do(update, db, bot, text)
-			g.Send(update.SentFrom().ID, r.Text, r.Buttons, bot)
+			resp, _ = pl.Do(update, db, bot, text)
+
 		} else if update.CallbackQuery != nil {
 			// Respond to the callback query, telling Telegram to show the user
 			// a message with the data received.
@@ -50,9 +51,22 @@ func main() {
 				log.Println(err)
 			}
 			text := update.CallbackQuery.Data
-			r, _ := pl.Do(update, db, bot, text)
-			
-			g.Send(update.SentFrom().ID, r.Text, r.Buttons, bot)
+			resp, _ = pl.Do(update, db, bot, text)
+		}
+		for _, r := range resp {
+			Send(update.SentFrom().ID, r.Text, &r.Buttons, bot)
 		}
 	}
 }
+
+func Send(chatID int64, text string, keyboard *tgbotapi.InlineKeyboardMarkup, bot helpers.Sender) {
+	msg := tgbotapi.NewMessage(chatID, text)
+	// msg.ReplyMarkup = keyboard
+	if bot == nil {
+		return
+	}
+	if _, err := bot.Send(msg); err != nil {
+		log.Printf("cant send: %v", err)
+	}
+}
+

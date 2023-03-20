@@ -48,10 +48,10 @@ func (p *Player) AddNewGame(gameID int64) {
 	p.GamesID = append(p.GamesID, gameID)
 }
 
-func (p *Player) NewGame(db memory.Memory, bot Sender, players ...PlayerID) (current_game game.Game) {
+func (p Player) NewGame(db memory.Memory, bot Sender, players ...PlayerID) []Response {
 	players = append([]PlayerID{p.ID}, players...)
 
-	current_game = game.NewGame(db, players...)
+	current_game := game.NewGame(db, players...)
 
 	for _, id := range players {
 		p, err := GetPlayer(id, db)
@@ -62,9 +62,8 @@ func (p *Player) NewGame(db memory.Memory, bot Sender, players ...PlayerID) (cur
 		p.Store(db)
 	}
 
-	SendStatus(db, bot, current_game)
-	*p, _ = GetPlayer(p.ID, db)
-	return
+	return SendStatus(db, bot, current_game)
+	
 }
 
 // add p.Update()
@@ -96,25 +95,17 @@ func (p Player) Send(text string, bot Sender) {
 }
 
 // sends status to all players
-func SendStatus(db memory.Memory, bot Sender, g game.Game) {
-	for _, id := range g.ChatsID {
-		Send(id, g.String(), makeKeyboard(g), bot)
+func SendStatus(db memory.Memory, bot Sender, g game.Game) (r []Response) {
+	for _, _ = range g.ChatsID {
+		r = append(r, Response{Text:g.String()})
+		// Send(id, g.String(), makeKeyboard(g), bot))
 	}
+	return
 }
 
-func Send(chatID int64, text string, keyboard tgbotapi.InlineKeyboardMarkup, bot Sender) {
-	msg := tgbotapi.NewMessage(chatID, text)
-	msg.ReplyMarkup = keyboard
-	if bot == nil {
-		return
-	}
-	if _, err := bot.Send(msg); err != nil {
-		log.Printf("cant send: %v", err)
-	}
-}
 
 // make inline keyboard for game
-func makeKeyboard(g game.Game) tgbotapi.InlineKeyboardMarkup {
+func makeKeyboard(g game.Game) *tgbotapi.InlineKeyboardMarkup {
 	markup := make([][]tgbotapi.InlineKeyboardButton, len(g.Board))
 
 	for i, v := range g.Board {
@@ -123,7 +114,7 @@ func makeKeyboard(g game.Game) tgbotapi.InlineKeyboardMarkup {
 			markup[i][j] = tgbotapi.NewInlineKeyboardButtonData(g.Board[i][j].String(), fmt.Sprintf("%d%d", i, j))
 		}
 	}
-	return tgbotapi.InlineKeyboardMarkup{
+	return &tgbotapi.InlineKeyboardMarkup{
 		InlineKeyboard: markup,
 	}
 }
@@ -151,10 +142,9 @@ func cmdToPlayersID(db memory.Memory, cmd string) (playersID []PlayerID, err err
 	return playersID, nil
 }
 
-func doNewGame(db memory.Memory, bot Sender, p *Player, cmd string) (r Response, err error) {
+func doNewGame(db memory.Memory, bot Sender, p *Player, cmd string) ([]Response, error) {
 	players, err := cmdToPlayersID(db, cmd)
-	g := p.NewGame(db, bot, players...)
-	return Response{Text: g.String()}, err
+	return  p.NewGame(db, bot, players...), err
 }
 
 type NoConnectionError struct{}
@@ -168,7 +158,7 @@ type NoSuchCommandError struct {
 func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
 
 // runs a command by player
-func (p *Player) Cmd(db memory.Memory, bot Sender, cmd *tgbotapi.Message) (r Response, err error) {
+func (p *Player) Cmd(db memory.Memory, bot Sender, cmd *tgbotapi.Message) (r []Response, err error) {
 	newgame := "newgame"
 	leaderboard := "leaderboard"
 
@@ -176,10 +166,12 @@ func (p *Player) Cmd(db memory.Memory, bot Sender, cmd *tgbotapi.Message) (r Res
 	case newgame:
 		r, err = doNewGame(db, bot, p, cmd.Text)
 	case leaderboard:
-		r, err = getLeaderboard(*p)
+		r1, err2 := getLeaderboard(*p)
+		r = []Response{r1}
+		err = err2
 	default:
 		err = NoSuchCommandError{cmd.Command()}
-		r.Text = err.Error()
+		r = []Response{Response{Text:err.Error()}}
 	}
 	return
 }
@@ -198,7 +190,7 @@ func (p *Player) Do2(db memory.Memory, bot Sender, cmd string) (Response, error)
 	leaderboard := "/leaderboard"
 
 	if strings.HasPrefix(cmd, pref) {
-		return doNewGame(db, bot, p, cmd)
+		return Response{}, nil
 	} else if strings.HasPrefix(cmd, leaderboard) {
 		return getLeaderboard(*p)
 	} else {

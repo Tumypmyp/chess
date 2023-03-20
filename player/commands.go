@@ -16,14 +16,15 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func Do(update tgbotapi.Update, db memory.Memory, bot Sender, cmd string) (Response, error) {
+func Do(update tgbotapi.Update, db memory.Memory, bot Sender, cmd string) ([]Response, error) {
 	player := getPlayerByID(update.SentFrom().ID, update.SentFrom().UserName, db)
 	log.Println("player:", player)
 	log.Println("message:", update.Message)
 	if update.Message != nil && update.Message.IsCommand() {
 		return player.Cmd(db, bot, update.Message)
 	}
-	return player.Do(db, bot, cmd)
+	r, err := player.Do(db, bot, cmd)
+	return []Response{r}, err
 }
 
 func getPlayerByID(id int64, username string, db memory.Memory) (player Player) {
