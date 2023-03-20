@@ -20,11 +20,31 @@ func Do(update tgbotapi.Update, db memory.Memory, bot Sender, cmd string) ([]Res
 	log.Println("player:", player)
 	log.Println("message:", update.Message)
 	if update.Message != nil && update.Message.IsCommand() {
-		return player.Cmd(db, update.Message)
+		return Cmd(db, update.Message, player)
 	}
 	r, err := player.Do(db, cmd)
 	log.Println(r, err,cmd)
 	return r, err
+}
+
+
+// runs a command by player
+func  Cmd(db memory.Memory, cmd *tgbotapi.Message, p Player) (r []Response, err error) {
+	newgame := "newgame"
+	leaderboard := "leaderboard"
+
+	switch cmd.Command() {
+	case newgame:
+		r, err = doNewGame(db, p, cmd.Text)
+	case leaderboard:
+		r1, err2 := getLeaderboard(p)
+		r = []Response{r1}
+		err = err2
+	default:
+		err = NoSuchCommandError{cmd.Command()}
+		r = []Response{Response{Text: err.Error()}}
+	}
+	return
 }
 
 func getPlayerByID(id int64, username string, db memory.Memory) (player Player) {

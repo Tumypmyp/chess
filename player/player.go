@@ -7,8 +7,6 @@ import (
 	"github.com/tumypmyp/chess/game"
 	. "github.com/tumypmyp/chess/helpers"
 	"github.com/tumypmyp/chess/memory"
-
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Player struct {
@@ -85,7 +83,7 @@ func cmdToPlayersID(db memory.Memory, cmd string) (playersID []PlayerID, err err
 	return playersID, nil
 }
 
-func doNewGame(db memory.Memory, p *Player, cmd string) ([]Response, error) {
+func doNewGame(db memory.Memory, p Player, cmd string) ([]Response, error) {
 	players, err := cmdToPlayersID(db, cmd)
 	players = append([]PlayerID{p.ID}, players...)
 	return NewGame(db, players...), err
@@ -138,24 +136,6 @@ type NoSuchCommandError struct {
 
 func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
 
-// runs a command by player
-func (p *Player) Cmd(db memory.Memory, cmd *tgbotapi.Message) (r []Response, err error) {
-	newgame := "newgame"
-	leaderboard := "leaderboard"
-
-	switch cmd.Command() {
-	case newgame:
-		r, err = doNewGame(db, p, cmd.Text)
-	case leaderboard:
-		r1, err2 := getLeaderboard(*p)
-		r = []Response{r1}
-		err = err2
-	default:
-		err = NoSuchCommandError{cmd.Command()}
-		r = []Response{Response{Text: err.Error()}}
-	}
-	return
-}
 
 func (p *Player) Do(db memory.Memory, cmd string) ([]Response, error) {
 	log.Println(cmd)
