@@ -48,9 +48,7 @@ func (p *Player) AddNewGame(gameID int64) {
 	p.GamesID = append(p.GamesID, gameID)
 }
 
-func (p Player) NewGame(db memory.Memory, bot Sender, players ...PlayerID) []Response {
-	players = append([]PlayerID{p.ID}, players...)
-
+func NewGame(db memory.Memory, players ...PlayerID) []Response {
 	current_game := game.NewGame(db, players...)
 
 	for _, id := range players {
@@ -62,61 +60,7 @@ func (p Player) NewGame(db memory.Memory, bot Sender, players ...PlayerID) []Res
 		p.Store(db)
 	}
 
-	return SendStatus(db, bot, current_game)
-	
-}
-
-// add p.Update()
-
-func (p *Player) Move(db memory.Memory, bot Sender, move string) error {
-	game, err := p.CurrentGame(db)
-	if err != nil {
-		return err
-	}
-	if err = game.Move(p.ID, move); err != nil {
-		return err
-	}
-	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
-		return fmt.Errorf("could not reach db: %w", err)
-	}
-	SendStatus(db, bot, game)
-	return nil
-}
-
-func (p Player) Send(text string, bot Sender) {
-	msg := tgbotapi.NewMessage(int64(p.ID), text)
-
-	if bot == nil {
-		return
-	}
-	if _, err := bot.Send(msg); err != nil {
-		log.Printf("cant send: %v", err)
-	}
-}
-
-// sends status to all players
-func SendStatus(db memory.Memory, bot Sender, g game.Game) (r []Response) {
-	for _, _ = range g.ChatsID {
-		r = append(r, Response{Text:g.String()})
-		// Send(id, g.String(), makeKeyboard(g), bot))
-	}
-	return
-}
-
-
-// make inline keyboard for game
-func makeKeyboard(g game.Game) *tgbotapi.InlineKeyboardMarkup {
-	markup := make([][]tgbotapi.InlineKeyboardButton, len(g.Board))
-
-	for i, v := range g.Board {
-		markup[i] = make([]tgbotapi.InlineKeyboardButton, len(g.Board[i]))
-		for j, _ := range v {
-			markup[i][j] = tgbotapi.NewInlineKeyboardButtonData(g.Board[i][j].String(), fmt.Sprintf("%d%d", i, j))
-		}
-	}
-	return &tgbotapi.InlineKeyboardMarkup{
-		InlineKeyboard: markup,
-	}
+	return SendStatus(current_game)
 }
 
 type NoSuchPlayerError struct{}
@@ -142,10 +86,52 @@ func cmdToPlayersID(db memory.Memory, cmd string) (playersID []PlayerID, err err
 	return playersID, nil
 }
 
-func doNewGame(db memory.Memory, bot Sender, p *Player, cmd string) ([]Response, error) {
+func doNewGame(db memory.Memory, p *Player, cmd string) ([]Response, error) {
 	players, err := cmdToPlayersID(db, cmd)
-	return  p.NewGame(db, bot, players...), err
+	players = append([]PlayerID{p.ID}, players...)
+	return NewGame(db, players...), err
 }
+
+
+// add p.Update()
+
+func (p *Player) Move(db memory.Memory, bot Sender, move string) error {
+	game, err := p.CurrentGame(db)
+	if err != nil {
+		return err
+	}
+	if err = game.Move(p.ID, move); err != nil {
+		return err
+	}
+	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
+		return fmt.Errorf("could not reach db: %w", err)
+	}
+	SendStatus(game)
+	return nil
+}
+
+
+// sends status to all players
+func SendStatus(g game.Game) (r []Response) {
+	for _, _ = range g.ChatsID {
+		r = append(r, Response{Text:g.String(), Keyboard: makeGameKeyboard(g)})
+	}
+	return
+}
+
+func makeGameKeyboard(g game.Game) (keyboard [][]Button) {
+	keyboard = make([][]Button, len(g.Board))
+	
+	for i, v := range g.Board {
+		keyboard[i] = make([]Button, len(g.Board[i]))
+		for j, _ := range v {
+			keyboard[i][j] = Button{g.Board[i][j].String(), fmt.Sprintf("%d%d", i, j)}
+		}
+	}
+	return 
+}
+
+
 
 type NoConnectionError struct{}
 
@@ -164,7 +150,7 @@ func (p *Player) Cmd(db memory.Memory, bot Sender, cmd *tgbotapi.Message) (r []R
 
 	switch cmd.Command() {
 	case newgame:
-		r, err = doNewGame(db, bot, p, cmd.Text)
+		r, err = doNewGame(db, p, cmd.Text)
 	case leaderboard:
 		r1, err2 := getLeaderboard(*p)
 		r = []Response{r1}

@@ -54,14 +54,15 @@ func main() {
 			resp, _ = pl.Do(update, db, bot, text)
 		}
 		for _, r := range resp {
-			Send(update.SentFrom().ID, r.Text, &r.Buttons, bot)
+			log.Println(r)
+			Send(update.SentFrom().ID, r.Text, makeKeyboard(r.Keyboard), bot)
 		}
 	}
 }
 
-func Send(chatID int64, text string, keyboard *tgbotapi.InlineKeyboardMarkup, bot helpers.Sender) {
+func Send(chatID int64, text string, keyboard tgbotapi.InlineKeyboardMarkup, bot helpers.Sender) {
 	msg := tgbotapi.NewMessage(chatID, text)
-	// msg.ReplyMarkup = keyboard
+	msg.ReplyMarkup = keyboard
 	if bot == nil {
 		return
 	}
@@ -70,3 +71,18 @@ func Send(chatID int64, text string, keyboard *tgbotapi.InlineKeyboardMarkup, bo
 	}
 }
 
+
+// make inline keyboard for game
+func makeKeyboard(keyboard [][]helpers.Button) tgbotapi.InlineKeyboardMarkup {
+	markup := make([][]tgbotapi.InlineKeyboardButton, len(keyboard))
+
+	for i, v := range keyboard {
+		markup[i] = make([]tgbotapi.InlineKeyboardButton, len(keyboard[i]))
+		for j, _ := range v {
+			markup[i][j] = tgbotapi.NewInlineKeyboardButtonData(keyboard[i][j].Text, keyboard[i][j].CallbackData) //fmt.Sprintf("%d%d", i, j))
+		}
+	}
+	return tgbotapi.InlineKeyboardMarkup{
+		InlineKeyboard: markup,
+	}
+}

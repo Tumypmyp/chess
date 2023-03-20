@@ -79,6 +79,7 @@ func NewGame(db memory.Memory, players ...PlayerID) Game {
 	return game
 }
 
+
 func (g *Game) AddChat(chatID int64) {
 	g.ChatsID = append(g.ChatsID, chatID)
 }

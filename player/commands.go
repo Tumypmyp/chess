@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"time"
-
 	"fmt"
 
 	. "github.com/tumypmyp/chess/helpers"

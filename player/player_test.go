@@ -17,7 +17,7 @@ func TestPlayer(t *testing.T) {
 		db := mem
 		p := NewPlayer(db, PlayerID(123), "pl")
 
-		p.NewGame(db, nil)
+		NewGame(db, p.ID)
 
 		t.Log(mem.DB)
 		t.Log(p)
@@ -40,7 +40,7 @@ func TestPlayer(t *testing.T) {
 		db := memory.NewStubDatabase()
 		p := NewPlayer(db, PlayerID(123), "pl")
 
-		p.NewGame(db, nil)
+		NewGame(db, p.ID)
 
 		p, err := GetPlayer(p.ID, db)
 		AssertNoError(t, err)
@@ -55,7 +55,7 @@ func TestPlayer(t *testing.T) {
 		want := [3][3]g.Mark{{0, 0, 1}, {0, 0, 0}, {0, 0, 0}}
 		AssertBoard(t, game.Board, want)
 
-		p.NewGame(db, nil)
+		NewGame(db, p.ID)
 
 		game, err = p.CurrentGame(db)
 		AssertNoError(t, err)
@@ -69,7 +69,7 @@ func TestPlayer(t *testing.T) {
 
 		p := NewPlayer(db, PlayerID(123), "pl")
 
-		p.NewGame(db, nil)
+		NewGame(db, p.ID)
 		p, err := GetPlayer(p.ID, db)
 		AssertNoError(t, err)
 
@@ -77,7 +77,7 @@ func TestPlayer(t *testing.T) {
 		AssertNoError(t, err)
 		AssertInt(t, game.ID, 10)
 
-		p.NewGame(db, nil)
+		NewGame(db, p.ID)
 		p, err = GetPlayer(p.ID, db)
 		AssertNoError(t, err)
 		
@@ -90,7 +90,7 @@ func TestPlayer(t *testing.T) {
 		id := PlayerID(123456)
 		p := NewPlayer(db, id, "pl")
 
-		p.NewGame(db, nil)
+		NewGame(db, p.ID)
 
 		if len(p.GamesID) != 0 {
 			t.Errorf("wanted 0 game, got %v", p.GamesID)
@@ -110,7 +110,7 @@ func TestPlayer(t *testing.T) {
 		id := PlayerID(123456)
 		p := NewPlayer(db, id, "pl")
 
-		p.NewGame(db, nil, id)
+		NewGame(db, id)
 		t.Log(mem.DB)
 		_, err := p.CurrentGame(db)
 		AssertNoError(t, err)
@@ -121,7 +121,7 @@ func TestPlayer(t *testing.T) {
 		db := memory.NewStubDatabase()
 		p1 := NewPlayer(db, PlayerID(12), "pl12")
 		p2 := NewPlayer(db, PlayerID(13), "pl13")
-		p1.NewGame(db, nil, p2.ID)
+		NewGame(db, p1.ID, p2.ID)
 
 		var err error
 		err = p2.Move(db, nil, "11")
@@ -160,7 +160,7 @@ func TestPlayer(t *testing.T) {
 	t.Run("do move", func(t *testing.T) {
 		db := memory.NewStubDatabase()
 		player := NewPlayer(db, PlayerID(12), "pl")
-		_ = player.NewGame(db, nil)
+		_ = NewGame(db, player.ID)
 		player, err := GetPlayer(player.ID, db)
 		AssertNoError(t, err)
 		t.Log(db.DB)
@@ -204,7 +204,7 @@ func TestPlayer(t *testing.T) {
 		p1 := NewPlayer(db, PlayerID(123), "abc")
 		p2 := NewPlayer(db, PlayerID(456), "def")
 
-		p1.NewGame(db, nil, p2.ID)
+		NewGame(db, p1.ID, p2.ID)
 
 		var err error
 		_, err = p1.CurrentGame(db)
@@ -240,7 +240,7 @@ func TestPlayer(t *testing.T) {
 		db := memory.NewStubDatabase()
 		p := NewPlayer(db, PlayerID(123), "pl")
 
-		p.NewGame(db, nil)
+		NewGame(db, p.ID)
 
 		p, err := GetPlayer(p.ID, db)
 		AssertNoError(t, err)
@@ -260,7 +260,7 @@ func TestPlayer(t *testing.T) {
 		_, err = p2.CurrentGame(db)
 		AssertExactError(t, err, NoCurrentGameError{})
 
-		p2.NewGame(db, nil)
+		NewGame(db, p2.ID)
 		game, err = p2.CurrentGame(db)
 
 		AssertNoError(t, err)
@@ -290,7 +290,7 @@ func TestPlayerResponses(t *testing.T) {
 		p1 := NewPlayer(db, PlayerID(123), "abc")
 		p2 := NewPlayer(db, PlayerID(456), "def")
 
-		r := p1.NewGame(db, bot, p2.ID)
+		r := NewGame(db, p1.ID, p2.ID)
 		AssertInt(t, int64(len(r)), 2)
 
 		_, err := p1.Do(db, bot, "11")
@@ -305,7 +305,7 @@ func TestPlayerResponses(t *testing.T) {
 		p2 := NewPlayer(db, PlayerID(456), "def")
 		p3 := NewPlayer(db, PlayerID(789), "ghi")
 
-		r := p1.NewGame(db, bot, p2.ID, p3.ID)
+		r := NewGame(db, p1.ID, p2.ID, p3.ID)
 		AssertInt(t, int64(len(r)), 3)
 
 		_, err := p1.Do(db, bot, "11")
@@ -375,7 +375,7 @@ func TestPlayerCmd(t *testing.T) {
 		db := memory.NewStubDatabase()
 		p1 := NewPlayer(db, PlayerID(123), "abc")
 
-		r, err := doNewGame(db, nil, &p1, "/newgame")
+		r, err := doNewGame(db, &p1, "/newgame")
 		AssertNoError(t, err)
 		AssertString(t, r[0].Text, "@123 \nStarted\n")
 	})

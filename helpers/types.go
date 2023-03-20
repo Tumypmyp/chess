@@ -10,7 +10,11 @@ type Sender interface {
 
 type PlayerID int64
 
+type Button struct {
+	Text string
+	CallbackData string
+}
 type Response struct {
 	Text string
-	Buttons tgbotapi.InlineKeyboardMarkup
+	Keyboard [][]Button
 }
