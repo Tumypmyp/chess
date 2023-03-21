@@ -11,25 +11,9 @@ import (
 	"github.com/tumypmyp/chess/memory"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func Do(update tgbotapi.Update, db memory.Memory, cmd string) (r Response, err error) {
-	player := makePlayer(update.SentFrom().ID, update.SentFrom().UserName, db)
-	log.Println("player:", player)
-	log.Println("message:", update.Message)
-	if update.Message != nil && update.Message.IsCommand() {
-		r, err = Cmd(db, update.Message.Command(), update.Message.Text, player, update.SentFrom().ID)
-	} else {
-		r, err = player.Do(db, cmd, update.SentFrom().ID)
-	}
-	if update.SentFrom().ID != update.FromChat().ID {
-		r.ChatsID = append(r.ChatsID, update.FromChat().ID)
-	}
-	log.Println(r, err,cmd)
-	return r, err
-}
+
 
 
 
@@ -59,7 +43,7 @@ func  Cmd(db memory.Memory, cmd, text string, p Player, ChatID int64) (r Respons
 }
 
 // get or create new player
-func makePlayer(id int64, username string, db memory.Memory) (player Player) {
+func MakePlayer(id int64, username string, db memory.Memory) (player Player) {
 	ID := PlayerID(id)
 	var err error
 	if player, err = getPlayer(ID, db); err != nil {

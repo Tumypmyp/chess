@@ -49,11 +49,27 @@ func main() {
 			text = update.CallbackQuery.Data
 		}
 
-		resp, _ := pl.Do(update, db, text)
+		resp, _ := Do(update, db, text)
 		for _, id := range resp.ChatsID {
 			sendResponse(id, resp, bot)
 		}
 	}
+}
+
+func Do(update tgbotapi.Update, db memory.Memory, cmd string) (r helpers.Response, err error) {
+	player := pl.MakePlayer(update.SentFrom().ID, update.SentFrom().UserName, db)
+	log.Println("player:", player)
+	log.Println("message:", update.Message)
+	if update.Message != nil && update.Message.IsCommand() {
+		r, err = pl.Cmd(db, update.Message.Command(), update.Message.Text, player, update.SentFrom().ID)
+	} else {
+		r, err = player.Do(db, cmd, update.SentFrom().ID)
+	}
+	if update.SentFrom().ID != update.FromChat().ID {
+		r.ChatsID = append(r.ChatsID, update.FromChat().ID)
+	}
+	log.Println(cmd, r, err)
+	return r, err
 }
 
 func sendResponse(chatID int64, r helpers.Response, bot helpers.Sender) {
