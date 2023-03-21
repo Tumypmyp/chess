@@ -7,7 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/tumypmyp/chess/helpers"
 	"github.com/tumypmyp/chess/memory"
-	pl "github.com/tumypmyp/chess/player"
+	pl "github.com/tumypmyp/chess/player_service"
 )
 
 // initiates bot api
@@ -38,41 +38,43 @@ func main() {
 		if update.SentFrom() == nil {
 			continue
 		}
+		go processUpdate(update, db, bot)
+	}
+}
 
-		var text string
-		if update.Message != nil {
-			text = update.Message.Text
-		} else if update.CallbackQuery != nil {
-			callback := tgbotapi.NewCallback(update.CallbackQuery.ID, "")
-			if _, err := bot.Request(callback); err != nil {
-				log.Println(err)
-			}
-			text = update.CallbackQuery.Data
+func processUpdate(update tgbotapi.Update, db memory.Memory, bot *tgbotapi.BotAPI) {
+	var text string
+	if update.Message != nil {
+		text = update.Message.Text
+	} else if update.CallbackQuery != nil {
+		callback := tgbotapi.NewCallback(update.CallbackQuery.ID, "")
+		if _, err := bot.Request(callback); err != nil {
+			log.Println(err)
 		}
+		text = update.CallbackQuery.Data
+	}
 
-		resp, _ := Do(update, db, text)
-		for _, id := range resp.ChatsID {
-			sendResponse(id, resp, bot)
-		}
+	resp, _ := Do(update, db, text)
+	for _, id := range resp.ChatsID {
+		sendResponse(id, resp, bot)
 	}
 }
 
 // calls player command function from update
-func Do(update tgbotapi.Update, db memory.Memory, cmd string) (r helpers.Response, err error) {
+func Do(update tgbotapi.Update, db memory.Memory, text string) (r helpers.Response, err error) {
 	id := helpers.PlayerID(update.SentFrom().ID)
-	log.Println("player:", id)
-	log.Println("message:", update.Message)
 
+	var cmd string
 	pl.MakePlayer(id, update.SentFrom().UserName, db)
 	if update.Message != nil && update.Message.IsCommand() {
-		r, err = pl.Cmd(db, update.Message.Command(), update.Message.Text, id, update.SentFrom().ID)
-	} else {
-		r, err = pl.Do(id, db, cmd, update.SentFrom().ID)
+		cmd = update.Message.Command()
+		log.Println("cmd, text", cmd, text)
 	}
+	r, err = pl.NewMessage(id, update.SentFrom().ID, cmd, text, db)
+
 	if update.SentFrom().ID != update.FromChat().ID {
 		r.ChatsID = append(r.ChatsID, update.FromChat().ID)
 	}
-	log.Println(cmd, r, err)
 	return r, err
 }
 

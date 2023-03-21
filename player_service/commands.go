@@ -19,11 +19,19 @@ type NoSuchCommandError struct {
 
 func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
 
+func NewMessage(p PlayerID, chatID int64, cmd, text string, db memory.Memory) (r Response, err error) {
+	if cmd != "" {
+		return Cmd(db, cmd, text, p, chatID)
+	}
+	return Do(p, db, text, chatID)
+}
+
 // runs a command by player
 func Cmd(db memory.Memory, cmd, text string, p PlayerID, ChatID int64) (r Response, err error) {
 	newgame := "newgame"
 	leaderboard := "leaderboard"
 
+	log.Println(cmd, text)
 	switch cmd {
 	case newgame:
 		r, err = doNewGame(db, p, text)
@@ -37,6 +45,25 @@ func Cmd(db memory.Memory, cmd, text string, p PlayerID, ChatID int64) (r Respon
 	}
 	return
 }
+
+// Move player
+func Do(id PlayerID, db memory.Memory, move string, chatID int64) (Response, error) {
+	p, _ := getPlayer(id, db)
+	game, err := p.CurrentGame(db)
+	if err != nil {
+		return Response{Text: err.Error(), ChatsID: []int64{chatID}}, err
+	}
+	if err = game.Move(id, move); err != nil {
+		return Response{Text: err.Error(), ChatsID: []int64{chatID}}, err
+	}
+	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
+		e := DatabaseStoringError{err}
+		return Response{Text: e.Error(), ChatsID: []int64{chatID}}, e
+	}
+	return SendStatus(game), nil
+
+}
+
 
 // get or create new player
 func MakePlayer(id PlayerID, username string, db memory.Memory) (player Player) {
@@ -64,23 +91,6 @@ func (d DatabaseStoringError) Error() string {
 	return fmt.Sprintf("can not store in database: %v", d.err.Error())
 }
 
-// Move player
-func Do(id PlayerID, db memory.Memory, move string, chatID int64) (Response, error) {
-	p, _ := getPlayer(id, db)
-	game, err := p.CurrentGame(db)
-	if err != nil {
-		return Response{Text: err.Error(), ChatsID: []int64{chatID}}, err
-	}
-	if err = game.Move(id, move); err != nil {
-		return Response{Text: err.Error(), ChatsID: []int64{chatID}}, err
-	}
-	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
-		e := DatabaseStoringError{err}
-		return Response{Text: e.Error(), ChatsID: []int64{chatID}}, e
-	}
-	return SendStatus(game), nil
-
-}
 
 type NoConnectionError struct{}
 
