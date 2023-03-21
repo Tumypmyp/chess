@@ -3,8 +3,9 @@ package game
 import (
 	"errors"
 	"fmt"
-	"github.com/tumypmyp/chess/memory"
+
 	. "github.com/tumypmyp/chess/helpers"
+	"github.com/tumypmyp/chess/memory"
 )
 
 type Mark int
@@ -60,7 +61,7 @@ type Game struct {
 	Board [3][3]Mark `json:"board"`
 }
 
-func NewGame(db memory.Memory, players ...PlayerID) Game {
+func NewGame(db memory.Memory, playersID ...PlayerID) Game {
 	ID, err := db.Incr("gameID")
 	if err != nil {
 		// log.Printf("cant restore id %v", err)
@@ -69,7 +70,7 @@ func NewGame(db memory.Memory, players ...PlayerID) Game {
 		ID: ID,
 	}
 	// makes description
-	for _, id := range players {
+	for _, id := range playersID {
 		game.PlayersID = append(game.PlayersID, id)
 		game.ChatsID = append(game.ChatsID, int64(id))
 		name, _ := getPlayerUsername(id, db)
@@ -90,14 +91,9 @@ func getPlayerUsername(ID PlayerID, m memory.Memory) (name string, err error) {
 	return
 }
 
-
-
 func (g *Game) AddChat(chatID int64) {
 	g.ChatsID = append(g.ChatsID, chatID)
 }
-
-
-
 
 // Returns string representation of a game
 func (g Game) String() (s string) {
@@ -125,7 +121,6 @@ func checkBoundary(g Game, x, y int) error {
 
 // Makes move by a player
 func (g *Game) Move(playerID PlayerID, move string) error {
-
 	if g.Status == Finished {
 		return errors.New("the game is finished")
 	}

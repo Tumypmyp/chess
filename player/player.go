@@ -86,7 +86,7 @@ func cmdToPlayersID(db memory.Memory, cmd string) (playersID []PlayerID, err err
 func doNewGame(db memory.Memory, id PlayerID, cmd string) (Response, error) {
 	p, err := getPlayer(id, db)
 	if err != nil {
-		return Response{Text:err.Error()}, err
+		return Response{Text: err.Error()}, err
 	}
 	players, err := cmdToPlayersID(db, cmd)
 	players = append([]PlayerID{p.ID}, players...)
@@ -94,8 +94,6 @@ func doNewGame(db memory.Memory, id PlayerID, cmd string) (Response, error) {
 }
 
 // add p.Update()
-
-
 
 // sends status to all players
 func SendStatus(g game.Game) Response {
@@ -114,7 +112,6 @@ func makeGameKeyboard(g game.Game) (keyboard [][]Button) {
 	return
 }
 
-
 // Update memory.Memory with new value of a player
 func (p Player) Store(m memory.Memory) error {
 	key := fmt.Sprintf("user:%d", p.ID)
@@ -125,7 +122,7 @@ func (p Player) Store(m memory.Memory) error {
 	return nil
 }
 
-func (p Player) StoreID (m memory.Memory) error {
+func (p Player) StoreID(m memory.Memory) error {
 	key := fmt.Sprintf("userID:%d", p.ID)
 	if err := m.Set(key, p.Username); err != nil {
 		return fmt.Errorf("error when storing player username %v: %w", p.Username, err)

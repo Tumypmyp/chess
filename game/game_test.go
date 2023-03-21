@@ -2,8 +2,9 @@ package game
 
 import (
 	"testing"
-	"github.com/tumypmyp/chess/memory"
+
 	. "github.com/tumypmyp/chess/helpers"
+	"github.com/tumypmyp/chess/memory"
 )
 
 func TestGame(t *testing.T) {
@@ -19,7 +20,7 @@ func TestGame(t *testing.T) {
 			Description:   "@ ",
 			CurrentPlayer: 0,
 			Status:        Started,
-			ChatsID: []int64{12},
+			ChatsID:       []int64{12},
 			Board:         board,
 			ID:            0}
 		AssertGame(t, game, want)
@@ -40,9 +41,9 @@ func TestGame(t *testing.T) {
 			Description:   "@ @ ",
 			CurrentPlayer: 1,
 			Board:         board,
-			
+
 			ChatsID: []int64{12, 13},
-			ID:            0}
+			ID:      0}
 		AssertGame(t, game, want)
 
 		err = game.Move(p2, "01")
@@ -83,5 +84,5 @@ func TestGame(t *testing.T) {
 		AssertInt(t, int64(len(game.ChatsID)), 2)
 		t.Logf("%+v", game.ChatsID)
 	})
-	
+
 }

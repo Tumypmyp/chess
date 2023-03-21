@@ -136,8 +136,8 @@ func TestPlayer(t *testing.T) {
 
 		var err error
 		cmd := "newgame"
-		_, err = Cmd(db, cmd, "/" + cmd, p.ID, 0)
-		
+		_, err = Cmd(db, cmd, "/"+cmd, p.ID, 0)
+
 		// _, err = Cmd(db, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
 		// 	{Type: "bot_command", Offset: 0, Length: len(cmd)},
 		// }}, p, 0)
@@ -187,7 +187,7 @@ func TestPlayer(t *testing.T) {
 
 		var err error
 		cmd := "newgame"
-		_, err = Cmd(db, cmd, "/" + cmd + " @" + p2.Username, p1.ID, 0)
+		_, err = Cmd(db, cmd, "/"+cmd+" @"+p2.Username, p1.ID, 0)
 		// _, err = Cmd(db, &tgbotapi.Message{Text: cmd + " @" + p2.Username, Entities: []tgbotapi.MessageEntity{
 		// 	{Type: "bot_command", Offset: 0, Length: len(cmd)},
 		// }}, p1, 0)
@@ -222,7 +222,7 @@ func TestPlayer(t *testing.T) {
 
 		var err error
 		cmd := "newgame"
-		_, err = Cmd(db,  cmd, "/" + cmd + " @" + p2.Username + " @" + p3.Username, p1.ID, 0)
+		_, err = Cmd(db, cmd, "/"+cmd+" @"+p2.Username+" @"+p3.Username, p1.ID, 0)
 		// _, err = Cmd(db, &tgbotapi.Message{Text: cmd + " @" + p2.Username + " @" + p3.Username,
 		// 	Entities: []tgbotapi.MessageEntity{
 		// 		{Type: "bot_command", Offset: 0, Length: len(cmd)},
@@ -287,21 +287,21 @@ func TestPlayerResponses(t *testing.T) {
 	})
 	t.Run("start game with other", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		
+
 		p1 := NewPlayer(db, PlayerID(123), "abc")
 		p2 := NewPlayer(db, PlayerID(456), "def")
 
 		r := NewGame(db, p1.ID, p2.ID)
 		AssertInt(t, int64(len(r.ChatsID)), 2)
 
-		r,  err := Do(p1.ID, db, "11", 0)
+		r, err := Do(p1.ID, db, "11", 0)
 		AssertNoError(t, err)
 		// AssertString(t, r2.Text, "Started")
 		AssertInt(t, int64(len(r.ChatsID)), 2)
 	})
 	t.Run("start game with 2 other", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		
+
 		p1 := NewPlayer(db, PlayerID(123), "abc")
 		p2 := NewPlayer(db, PlayerID(456), "def")
 		p3 := NewPlayer(db, PlayerID(789), "ghi")
@@ -318,12 +318,12 @@ func TestPlayerResponses(t *testing.T) {
 func TestPlayerCmd(t *testing.T) {
 	t.Run("newgame", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		
+
 		p1 := NewPlayer(db, PlayerID(123), "abc")
 
 		var err error
 		cmd := "newgame"
-		r, err := Cmd(db, cmd, "/" + cmd, p1.ID, 0)
+		r, err := Cmd(db, cmd, "/"+cmd, p1.ID, 0)
 		// r, err := Cmd(db, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
 		// 	{Type: "bot_command", Offset: 0, Length: len(cmd)},
 		// }}, p1, 0)
@@ -335,12 +335,12 @@ func TestPlayerCmd(t *testing.T) {
 	})
 	t.Run("leaderboard", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		// 
+		//
 		p1 := NewPlayer(db, PlayerID(123), "abc")
 
 		var err error
 		cmd := "leaderboard"
-		r, err := Cmd(db, cmd, "/" + cmd, p1.ID, 0)
+		r, err := Cmd(db, cmd, "/"+cmd, p1.ID, 0)
 		// r, err := Cmd(db, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
 		// 	{Type: "bot_command", Offset: 0, Length: len(cmd)},
 		// }}, p1, 0)
@@ -353,17 +353,17 @@ func TestPlayerCmd(t *testing.T) {
 	})
 	t.Run("no such command", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		
+
 		p1 := NewPlayer(db, PlayerID(123), "abc")
 
 		cmd1 := "command"
-		r, err := Cmd(db, cmd1, "/" + cmd1, p1.ID, 0)
-		
+		r, err := Cmd(db, cmd1, "/"+cmd1, p1.ID, 0)
+
 		AssertExactError(t, err, NoSuchCommandError{"command"})
 		AssertString(t, r.Text, NoSuchCommandError{"command"}.Error())
 
 		cmd2 := "newgame2"
-		r, err = Cmd(db, cmd2, "/" + cmd2, p1.ID, 0)
+		r, err = Cmd(db, cmd2, "/"+cmd2, p1.ID, 0)
 
 		AssertExactError(t, err, NoSuchCommandError{"newgame2"})
 		AssertInt(t, int64(len(r.ChatsID)), 1)

@@ -5,11 +5,12 @@ import (
 	"os"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/tumypmyp/chess/helpers"
 	"github.com/tumypmyp/chess/memory"
 	pl "github.com/tumypmyp/chess/player"
-    "github.com/tumypmyp/chess/helpers"
 )
 
+// initiates bot api
 func NewBot() (bot *tgbotapi.BotAPI) {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
 	if err != nil {
@@ -56,14 +57,17 @@ func main() {
 	}
 }
 
+// calls player command function from update
 func Do(update tgbotapi.Update, db memory.Memory, cmd string) (r helpers.Response, err error) {
-	player := pl.MakePlayer(update.SentFrom().ID, update.SentFrom().UserName, db)
-	log.Println("player:", player)
+	id := helpers.PlayerID(update.SentFrom().ID)
+	log.Println("player:", id)
 	log.Println("message:", update.Message)
+
+	pl.MakePlayer(id, update.SentFrom().UserName, db)
 	if update.Message != nil && update.Message.IsCommand() {
-		r, err = pl.Cmd(db, update.Message.Command(), update.Message.Text, player.ID, update.SentFrom().ID)
+		r, err = pl.Cmd(db, update.Message.Command(), update.Message.Text, id, update.SentFrom().ID)
 	} else {
-		r, err = pl.Do(player.ID, db, cmd, update.SentFrom().ID)
+		r, err = pl.Do(id, db, cmd, update.SentFrom().ID)
 	}
 	if update.SentFrom().ID != update.FromChat().ID {
 		r.ChatsID = append(r.ChatsID, update.FromChat().ID)
@@ -72,7 +76,8 @@ func Do(update tgbotapi.Update, db memory.Memory, cmd string) (r helpers.Respons
 	return r, err
 }
 
-func sendResponse(chatID int64, r helpers.Response, bot helpers.Sender) {
+// sends response message to bot api
+func sendResponse(chatID int64, r helpers.Response, bot Sender) {
 	msg := tgbotapi.NewMessage(chatID, r.Text)
 	msg.ReplyMarkup = makeKeyboard(r.Keyboard)
 
@@ -80,7 +85,6 @@ func sendResponse(chatID int64, r helpers.Response, bot helpers.Sender) {
 		log.Printf("cant send: %v", err)
 	}
 }
-
 
 // make inline keyboard for game
 func makeKeyboard(keyboard [][]helpers.Button) tgbotapi.InlineKeyboardMarkup {

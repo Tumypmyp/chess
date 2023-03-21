@@ -3,7 +3,6 @@ package game
 import (
 	"reflect"
 	"testing"
-	
 )
 
 func AssertStatus(t testing.TB, got, want GameStatus) {

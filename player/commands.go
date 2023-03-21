@@ -13,10 +13,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-
-
-
-
 type NoSuchCommandError struct {
 	cmd string
 }
@@ -24,7 +20,7 @@ type NoSuchCommandError struct {
 func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
 
 // runs a command by player
-func  Cmd(db memory.Memory, cmd, text string, p PlayerID, ChatID int64) (r Response, err error) {
+func Cmd(db memory.Memory, cmd, text string, p PlayerID, ChatID int64) (r Response, err error) {
 	newgame := "newgame"
 	leaderboard := "leaderboard"
 
@@ -37,17 +33,16 @@ func  Cmd(db memory.Memory, cmd, text string, p PlayerID, ChatID int64) (r Respo
 		err = err2
 	default:
 		err = NoSuchCommandError{cmd}
-		r = Response{Text: err.Error(), ChatsID : []int64{ChatID}}
+		r = Response{Text: err.Error(), ChatsID: []int64{ChatID}}
 	}
 	return
 }
 
 // get or create new player
-func MakePlayer(id int64, username string, db memory.Memory) (player Player) {
-	ID := PlayerID(id)
+func MakePlayer(id PlayerID, username string, db memory.Memory) (player Player) {
 	var err error
-	if player, err = getPlayer(ID, db); err != nil {
-		player = NewPlayer(db, ID, username)
+	if player, err = getPlayer(id, db); err != nil {
+		player = NewPlayer(db, id, username)
 	}
 	return
 }
@@ -61,21 +56,30 @@ func getPlayer(ID PlayerID, m memory.Memory) (p Player, err error) {
 	return
 }
 
+type DatabaseStoringError struct {
+	err error
+}
+
+func (d DatabaseStoringError) Error() string {
+	return fmt.Sprintf("can not store in database: %v", d.err.Error())
+}
+
 // Move player
 func Do(id PlayerID, db memory.Memory, move string, chatID int64) (Response, error) {
 	p, _ := getPlayer(id, db)
 	game, err := p.CurrentGame(db)
 	if err != nil {
-		return Response{Text:err.Error(), ChatsID : []int64{chatID}}, err
+		return Response{Text: err.Error(), ChatsID: []int64{chatID}}, err
 	}
 	if err = game.Move(id, move); err != nil {
-		return Response{Text:err.Error(), ChatsID : []int64{chatID}}, err
+		return Response{Text: err.Error(), ChatsID: []int64{chatID}}, err
 	}
 	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
-		return Response{Text:err.Error(), ChatsID : []int64{chatID}}, fmt.Errorf("could not reach db: %w", err)
+		e := DatabaseStoringError{err}
+		return Response{Text: e.Error(), ChatsID: []int64{chatID}}, e
 	}
 	return SendStatus(game), nil
-	
+
 }
 
 type NoConnectionError struct{}
@@ -91,7 +95,7 @@ func getLeaderboard(id PlayerID) (Response, error) {
 	defer conn.Close()
 	c := leaderboard.NewLeaderboardClient(conn)
 
-	// Contact the server and print out its response.
+	// Contact the server and return its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	r, err := c.GetLeaderboard(ctx, &leaderboard.Player{Name: fmt.Sprintf("%d", id)})
@@ -99,6 +103,5 @@ func getLeaderboard(id PlayerID) (Response, error) {
 		return Response{Text: NoConnectionError{}.Error()}, NoConnectionError{}
 
 	}
-	log.Printf("Greeting: %s", r.GetS())
 	return Response{Text: r.GetS()}, nil
 }

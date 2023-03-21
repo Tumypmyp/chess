@@ -1,4 +1,4 @@
-package helpers
+package main
 
 import (
 	"bytes"
@@ -6,6 +6,10 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
+
+type Sender interface {
+	Send(tgbotapi.Chattable) (tgbotapi.Message, error)
+}
 
 type StubBot struct {
 	buffer *bytes.Buffer
