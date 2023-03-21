@@ -91,6 +91,7 @@ func doNewGame(db memory.Memory, p Player, cmd string) (Response, error) {
 
 // add p.Update()
 
+// Move player
 func (p *Player) Do(db memory.Memory, move string, chatID int64) (Response, error) {
 	game, err := p.CurrentGame(db)
 	if err != nil {
@@ -127,8 +128,17 @@ func makeGameKeyboard(g game.Game) (keyboard [][]Button) {
 // Update memory.Memory with new value of a player
 func (p Player) Store(m memory.Memory) error {
 	key := fmt.Sprintf("user:%d", p.ID)
+	p.StoreID(m)
 	if err := m.Set(key, p); err != nil {
 		return fmt.Errorf("error when storing player %v: %w", p, err)
+	}
+	return nil
+}
+
+func (p Player) StoreID (m memory.Memory) error {
+	key := fmt.Sprintf("userID:%d", p.ID)
+	if err := m.Set(key, p.Username); err != nil {
+		return fmt.Errorf("error when storing player username %v: %w", p.Username, err)
 	}
 	return nil
 }

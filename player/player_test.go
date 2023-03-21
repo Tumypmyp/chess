@@ -173,7 +173,7 @@ func TestPlayer(t *testing.T) {
 
 		board := [3][3]g.Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
 		want := g.Game{PlayersID: []PlayerID{player.ID},
-			Description:   "@12 ",
+			Description:   "@pl ",
 			CurrentPlayer: 0,
 			ChatsID:       []int64{12},
 			Board:         board,
@@ -377,7 +377,7 @@ func TestPlayerCmd(t *testing.T) {
 
 		r, err := doNewGame(db, p1, "/newgame")
 		AssertNoError(t, err)
-		AssertString(t, r.Text, "@123 \nStarted\n")
+		AssertString(t, r.Text, "@abc \nStarted\n")
 	})
 	t.Run("cmd to players id", func(t *testing.T) {
 		db := memory.NewStubDatabase()

@@ -20,7 +20,7 @@ func Do(update tgbotapi.Update, db memory.Memory, bot Sender, cmd string) (r Res
 	log.Println("player:", player)
 	log.Println("message:", update.Message)
 	if update.Message != nil && update.Message.IsCommand() {
-		r, err =  Cmd(db, update.Message, player, update.SentFrom().ID)
+		r, err = Cmd(db, update.Message, player, update.SentFrom().ID)
 	} else {
 		r, err = player.Do(db, cmd, update.SentFrom().ID)
 	}

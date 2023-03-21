@@ -16,7 +16,7 @@ func TestGame(t *testing.T) {
 
 		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
 		want := Game{PlayersID: []PlayerID{player},
-			Description:   "@12 ",
+			Description:   "@ ",
 			CurrentPlayer: 0,
 			Status:        Started,
 			ChatsID: []int64{12},
@@ -37,7 +37,7 @@ func TestGame(t *testing.T) {
 
 		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
 		want := Game{PlayersID: []PlayerID{p1, p2},
-			Description:   "@12 @13 ",
+			Description:   "@ @ ",
 			CurrentPlayer: 1,
 			Board:         board,
 			
@@ -53,7 +53,7 @@ func TestGame(t *testing.T) {
 		want.CurrentPlayer = 0
 		AssertGame(t, game, want)
 		got := game.String()
-		str := "@12 @13 \nStarted\n"
+		str := "@ @ \nStarted\n"
 		AssertString(t, got, str)
 
 	})

@@ -72,12 +72,24 @@ func NewGame(db memory.Memory, players ...PlayerID) Game {
 	for _, id := range players {
 		game.PlayersID = append(game.PlayersID, id)
 		game.ChatsID = append(game.ChatsID, int64(id))
-		game.Description += fmt.Sprintf("@%d ", id)
+		name, _ := getPlayerUsername(id, db)
+		game.Description += fmt.Sprintf("@%s ", name)
 	}
 
 	db.Set(fmt.Sprintf("game:%d", ID), game)
 	return game
 }
+
+// get player from memory
+func getPlayerUsername(ID PlayerID, m memory.Memory) (name string, err error) {
+	key := fmt.Sprintf("userID:%d", ID)
+
+	if err = m.Get(key, &name); err != nil {
+		return name, fmt.Errorf("can not get player by id: %w", err)
+	}
+	return
+}
+
 
 
 func (g *Game) AddChat(chatID int64) {
