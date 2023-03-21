@@ -61,9 +61,9 @@ func Do(update tgbotapi.Update, db memory.Memory, cmd string) (r helpers.Respons
 	log.Println("player:", player)
 	log.Println("message:", update.Message)
 	if update.Message != nil && update.Message.IsCommand() {
-		r, err = pl.Cmd(db, update.Message.Command(), update.Message.Text, player, update.SentFrom().ID)
+		r, err = pl.Cmd(db, update.Message.Command(), update.Message.Text, player.ID, update.SentFrom().ID)
 	} else {
-		r, err = player.Do(db, cmd, update.SentFrom().ID)
+		r, err = pl.Do(player.ID, db, cmd, update.SentFrom().ID)
 	}
 	if update.SentFrom().ID != update.FromChat().ID {
 		r.ChatsID = append(r.ChatsID, update.FromChat().ID)

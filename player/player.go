@@ -83,7 +83,11 @@ func cmdToPlayersID(db memory.Memory, cmd string) (playersID []PlayerID, err err
 	return playersID, nil
 }
 
-func doNewGame(db memory.Memory, p Player, cmd string) (Response, error) {
+func doNewGame(db memory.Memory, id PlayerID, cmd string) (Response, error) {
+	p, err := getPlayer(id, db)
+	if err != nil {
+		return Response{Text:err.Error()}, err
+	}
 	players, err := cmdToPlayersID(db, cmd)
 	players = append([]PlayerID{p.ID}, players...)
 	return NewGame(db, players...), err
@@ -91,21 +95,7 @@ func doNewGame(db memory.Memory, p Player, cmd string) (Response, error) {
 
 // add p.Update()
 
-// Move player
-func (p *Player) Do(db memory.Memory, move string, chatID int64) (Response, error) {
-	game, err := p.CurrentGame(db)
-	if err != nil {
-		return Response{Text:err.Error(), ChatsID : []int64{chatID}}, err
-	}
-	if err = game.Move(p.ID, move); err != nil {
-		return Response{Text:err.Error(), ChatsID : []int64{chatID}}, err
-	}
-	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
-		return Response{Text:err.Error(), ChatsID : []int64{chatID}}, fmt.Errorf("could not reach db: %w", err)
-	}
-	return SendStatus(game), nil
-	
-}
+
 
 // sends status to all players
 func SendStatus(g game.Game) Response {

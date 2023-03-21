@@ -24,7 +24,7 @@ type NoSuchCommandError struct {
 func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
 
 // runs a command by player
-func  Cmd(db memory.Memory, cmd, text string, p Player, ChatID int64) (r Response, err error) {
+func  Cmd(db memory.Memory, cmd, text string, p PlayerID, ChatID int64) (r Response, err error) {
 	newgame := "newgame"
 	leaderboard := "leaderboard"
 
@@ -61,13 +61,29 @@ func getPlayer(ID PlayerID, m memory.Memory) (p Player, err error) {
 	return
 }
 
+// Move player
+func Do(id PlayerID, db memory.Memory, move string, chatID int64) (Response, error) {
+	p, _ := getPlayer(id, db)
+	game, err := p.CurrentGame(db)
+	if err != nil {
+		return Response{Text:err.Error(), ChatsID : []int64{chatID}}, err
+	}
+	if err = game.Move(id, move); err != nil {
+		return Response{Text:err.Error(), ChatsID : []int64{chatID}}, err
+	}
+	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
+		return Response{Text:err.Error(), ChatsID : []int64{chatID}}, fmt.Errorf("could not reach db: %w", err)
+	}
+	return SendStatus(game), nil
+	
+}
 
 type NoConnectionError struct{}
 
 func (n NoConnectionError) Error() string { return "can not connect to leaderboard" }
 
 // get leaderboard with gRPC call
-func getLeaderboard(p Player) (Response, error) {
+func getLeaderboard(id PlayerID) (Response, error) {
 	conn, err := grpc.Dial("leaderboard:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -78,7 +94,7 @@ func getLeaderboard(p Player) (Response, error) {
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.GetLeaderboard(ctx, &leaderboard.Player{Name: fmt.Sprintf("%d", p.ID)})
+	r, err := c.GetLeaderboard(ctx, &leaderboard.Player{Name: fmt.Sprintf("%d", id)})
 	if err != nil {
 		return Response{Text: NoConnectionError{}.Error()}, NoConnectionError{}
 
