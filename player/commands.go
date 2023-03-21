@@ -15,7 +15,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func Do(update tgbotapi.Update, db memory.Memory, bot Sender, cmd string) ([]Response, error) {
+func Do(update tgbotapi.Update, db memory.Memory, bot Sender, cmd string) (Response, error) {
 	player := makePlayer(update.SentFrom().ID, update.SentFrom().UserName, db)
 	log.Println("player:", player)
 	log.Println("message:", update.Message)
@@ -36,7 +36,7 @@ type NoSuchCommandError struct {
 func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
 
 // runs a command by player
-func  Cmd(db memory.Memory, cmd *tgbotapi.Message, p Player, ChatID int64) (r []Response, err error) {
+func  Cmd(db memory.Memory, cmd *tgbotapi.Message, p Player, ChatID int64) (r Response, err error) {
 	newgame := "newgame"
 	leaderboard := "leaderboard"
 
@@ -45,11 +45,11 @@ func  Cmd(db memory.Memory, cmd *tgbotapi.Message, p Player, ChatID int64) (r []
 		r, err = doNewGame(db, p, cmd.Text)
 	case leaderboard:
 		r1, err2 := getLeaderboard(p)
-		r = []Response{r1}
+		r = r1
 		err = err2
 	default:
 		err = NoSuchCommandError{cmd.Command()}
-		r = []Response{{Text: err.Error(), ChatID : ChatID}}
+		r = Response{Text: err.Error(), ChatsID : []int64{ChatID}}
 	}
 	return
 }

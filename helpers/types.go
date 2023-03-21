@@ -17,5 +17,5 @@ type Button struct {
 type Response struct {
 	Text string
 	Keyboard [][]Button
-	ChatID int64
+	ChatsID []int64
 }

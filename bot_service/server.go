@@ -50,14 +50,14 @@ func main() {
 		}
 
 		resp, _ := pl.Do(update, db, bot, text)
-		for _, r := range resp {
-			sendResponse(update.SentFrom().ID, r, bot)
+		for _, id := range resp.ChatsID {
+			sendResponse(id, resp, bot)
 		}
 	}
 }
 
 func sendResponse(chatID int64, r helpers.Response, bot helpers.Sender) {
-	msg := tgbotapi.NewMessage(r.ChatID, r.Text)
+	msg := tgbotapi.NewMessage(chatID, r.Text)
 	msg.ReplyMarkup = makeKeyboard(r.Keyboard)
 
 	if _, err := bot.Send(msg); err != nil {

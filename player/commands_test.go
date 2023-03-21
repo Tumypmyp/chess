@@ -23,7 +23,7 @@ func TestCommands(t *testing.T) {
 		r, err := Do(update, db, bot, cmd)
 
 		AssertNoError(t, err)
-		AssertInt(t, int64(len(r)), 1)
+		AssertInt(t, int64(len(r.ChatsID)), 1)
 
 		update = tgbotapi.Update{Message: &tgbotapi.Message{
 			From: &user,
@@ -33,7 +33,7 @@ func TestCommands(t *testing.T) {
 
 		r, err = Do(update, db, bot, "11")
 		AssertNoError(t, err)
-		AssertInt(t, int64(len(r)), 1)
+		AssertInt(t, int64(len(r.ChatsID)), 1)
 	})
 	t.Run("do newgame with other", func(t *testing.T) {
 		db := memory.NewStubDatabase()
@@ -48,7 +48,7 @@ func TestCommands(t *testing.T) {
 		r, err := Do(update, db, bot, cmd)
 		
 		AssertNoError(t, err)
-		AssertInt(t, int64(len(r)), 1)
+		AssertInt(t, int64(len(r.ChatsID)), 1)
 
 		cmd = "/newgame"
 		user = tgbotapi.User{ID: 456, UserName: "def"}
@@ -59,7 +59,7 @@ func TestCommands(t *testing.T) {
 		r, err = Do(update, db, bot, cmd)
 
 		AssertNoError(t, err)
-		AssertInt(t, int64(len(r)), 2)
+		AssertInt(t, int64(len(r.ChatsID)), 2)
 
 		update = tgbotapi.Update{Message: &tgbotapi.Message{
 			From: &user,
@@ -69,7 +69,7 @@ func TestCommands(t *testing.T) {
 
 		r, err = Do(update, db, bot, "11")
 		AssertNoError(t, err)
-		AssertInt(t, int64(len(r)), 2)
+		AssertInt(t, int64(len(r.ChatsID)), 2)
 
 	})
 }
