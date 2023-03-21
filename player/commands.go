@@ -15,14 +15,18 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func Do(update tgbotapi.Update, db memory.Memory, bot Sender, cmd string) (Response, error) {
+func Do(update tgbotapi.Update, db memory.Memory, bot Sender, cmd string) (r Response, err error) {
 	player := makePlayer(update.SentFrom().ID, update.SentFrom().UserName, db)
 	log.Println("player:", player)
 	log.Println("message:", update.Message)
 	if update.Message != nil && update.Message.IsCommand() {
-		return Cmd(db, update.Message, player, update.FromChat().ID)
+		r, err =  Cmd(db, update.Message, player, update.SentFrom().ID)
+	} else {
+		r, err = player.Do(db, cmd, update.SentFrom().ID)
 	}
-	r, err := player.Do(db, cmd, update.FromChat().ID)
+	if update.SentFrom().ID != update.FromChat().ID {
+		r.ChatsID = append(r.ChatsID, update.FromChat().ID)
+	}
 	log.Println(r, err,cmd)
 	return r, err
 }
