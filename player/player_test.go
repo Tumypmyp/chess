@@ -7,8 +7,6 @@ import (
 	g "github.com/tumypmyp/chess/game"
 	. "github.com/tumypmyp/chess/helpers"
 	"github.com/tumypmyp/chess/memory"
-
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 func TestPlayer(t *testing.T) {
@@ -137,10 +135,12 @@ func TestPlayer(t *testing.T) {
 		p := NewPlayer(db, PlayerID(123), "pl")
 
 		var err error
-		cmd := "/newgame"
-		_, err = Cmd(db, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
-			{Type: "bot_command", Offset: 0, Length: len(cmd)},
-		}}, p, 0)
+		cmd := "newgame"
+		_, err = Cmd(db, cmd, "/" + cmd, p, 0)
+		
+		// _, err = Cmd(db, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
+		// 	{Type: "bot_command", Offset: 0, Length: len(cmd)},
+		// }}, p, 0)
 		AssertNoError(t, err)
 
 		p, err = getPlayer(id, db)
@@ -186,10 +186,11 @@ func TestPlayer(t *testing.T) {
 		p2 := NewPlayer(db, PlayerID(456), "def")
 
 		var err error
-		cmd := "/newgame"
-		_, err = Cmd(db, &tgbotapi.Message{Text: cmd + " @" + p2.Username, Entities: []tgbotapi.MessageEntity{
-			{Type: "bot_command", Offset: 0, Length: len(cmd)},
-		}}, p1, 0)
+		cmd := "newgame"
+		_, err = Cmd(db, cmd, "/" + cmd + " @" + p2.Username, p1, 0)
+		// _, err = Cmd(db, &tgbotapi.Message{Text: cmd + " @" + p2.Username, Entities: []tgbotapi.MessageEntity{
+		// 	{Type: "bot_command", Offset: 0, Length: len(cmd)},
+		// }}, p1, 0)
 		AssertNoError(t, err)
 
 		_, err = p1.CurrentGame(db)
@@ -220,11 +221,12 @@ func TestPlayer(t *testing.T) {
 		p3 := NewPlayer(db, PlayerID(789), "ghi")
 
 		var err error
-		cmd := "/newgame"
-		_, err = Cmd(db, &tgbotapi.Message{Text: cmd + " @" + p2.Username + " @" + p3.Username,
-			Entities: []tgbotapi.MessageEntity{
-				{Type: "bot_command", Offset: 0, Length: len(cmd)},
-			}}, p1, 0)
+		cmd := "newgame"
+		_, err = Cmd(db,  cmd, "/" + cmd + " @" + p2.Username + " @" + p3.Username, p1, 0)
+		// _, err = Cmd(db, &tgbotapi.Message{Text: cmd + " @" + p2.Username + " @" + p3.Username,
+		// 	Entities: []tgbotapi.MessageEntity{
+		// 		{Type: "bot_command", Offset: 0, Length: len(cmd)},
+		// 	}}, p1, 0)
 		AssertNoError(t, err)
 
 		_, err = p1.CurrentGame(db)
@@ -320,10 +322,11 @@ func TestPlayerCmd(t *testing.T) {
 		p1 := NewPlayer(db, PlayerID(123), "abc")
 
 		var err error
-		cmd := "/newgame"
-		r, err := Cmd(db, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
-			{Type: "bot_command", Offset: 0, Length: len(cmd)},
-		}}, p1, 0)
+		cmd := "newgame"
+		r, err := Cmd(db, cmd, "/" + cmd, p1, 0)
+		// r, err := Cmd(db, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
+		// 	{Type: "bot_command", Offset: 0, Length: len(cmd)},
+		// }}, p1, 0)
 		AssertNoError(t, err)
 		_, err = p1.CurrentGame(db)
 		AssertNoError(t, err)
@@ -336,10 +339,11 @@ func TestPlayerCmd(t *testing.T) {
 		p1 := NewPlayer(db, PlayerID(123), "abc")
 
 		var err error
-		cmd := "/leaderboard"
-		r, err := Cmd(db, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
-			{Type: "bot_command", Offset: 0, Length: len(cmd)},
-		}}, p1, 0)
+		cmd := "leaderboard"
+		r, err := Cmd(db, cmd, "/" + cmd, p1, 0)
+		// r, err := Cmd(db, &tgbotapi.Message{Text: cmd, Entities: []tgbotapi.MessageEntity{
+		// 	{Type: "bot_command", Offset: 0, Length: len(cmd)},
+		// }}, p1, 0)
 		AssertExactError(t, err, NoConnectionError{})
 		AssertString(t, r.Text, NoConnectionError{}.Error())
 
@@ -352,17 +356,15 @@ func TestPlayerCmd(t *testing.T) {
 		
 		p1 := NewPlayer(db, PlayerID(123), "abc")
 
-		cmd1 := "/command"
-		r, err := Cmd(db, &tgbotapi.Message{Text: cmd1, Entities: []tgbotapi.MessageEntity{
-			{Type: "bot_command", Offset: 0, Length: len(cmd1)},
-		}}, p1, 0)
+		cmd1 := "command"
+		r, err := Cmd(db, cmd1, "/" + cmd1, p1, 0)
+		
 		AssertExactError(t, err, NoSuchCommandError{"command"})
 		AssertString(t, r.Text, NoSuchCommandError{"command"}.Error())
 
-		cmd2 := "/newgame2"
-		r, err = Cmd(db, &tgbotapi.Message{Text: cmd2, Entities: []tgbotapi.MessageEntity{
-			{Type: "bot_command", Offset: 0, Length: len(cmd2)},
-		}}, p1, 0)
+		cmd2 := "newgame2"
+		r, err = Cmd(db, cmd2, "/" + cmd2, p1, 0)
+
 		AssertExactError(t, err, NoSuchCommandError{"newgame2"})
 		AssertInt(t, int64(len(r.ChatsID)), 1)
 		AssertString(t, r.Text, NoSuchCommandError{"newgame2"}.Error())

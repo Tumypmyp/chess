@@ -15,12 +15,12 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func Do(update tgbotapi.Update, db memory.Memory, bot Sender, cmd string) (r Response, err error) {
+func Do(update tgbotapi.Update, db memory.Memory, cmd string) (r Response, err error) {
 	player := makePlayer(update.SentFrom().ID, update.SentFrom().UserName, db)
 	log.Println("player:", player)
 	log.Println("message:", update.Message)
 	if update.Message != nil && update.Message.IsCommand() {
-		r, err = Cmd(db, update.Message, player, update.SentFrom().ID)
+		r, err = Cmd(db, update.Message.Command(), update.Message.Text, player, update.SentFrom().ID)
 	} else {
 		r, err = player.Do(db, cmd, update.SentFrom().ID)
 	}
@@ -40,19 +40,19 @@ type NoSuchCommandError struct {
 func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
 
 // runs a command by player
-func  Cmd(db memory.Memory, cmd *tgbotapi.Message, p Player, ChatID int64) (r Response, err error) {
+func  Cmd(db memory.Memory, cmd, text string, p Player, ChatID int64) (r Response, err error) {
 	newgame := "newgame"
 	leaderboard := "leaderboard"
 
-	switch cmd.Command() {
+	switch cmd {
 	case newgame:
-		r, err = doNewGame(db, p, cmd.Text)
+		r, err = doNewGame(db, p, text)
 	case leaderboard:
 		r1, err2 := getLeaderboard(p)
 		r = r1
 		err = err2
 	default:
-		err = NoSuchCommandError{cmd.Command()}
+		err = NoSuchCommandError{cmd}
 		r = Response{Text: err.Error(), ChatsID : []int64{ChatID}}
 	}
 	return

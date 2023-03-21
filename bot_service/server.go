@@ -49,7 +49,7 @@ func main() {
 			text = update.CallbackQuery.Data
 		}
 
-		resp, _ := pl.Do(update, db, bot, text)
+		resp, _ := pl.Do(update, db, text)
 		for _, id := range resp.ChatsID {
 			sendResponse(id, resp, bot)
 		}
