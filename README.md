@@ -24,7 +24,12 @@ Goal for this pet-project is to create a chess game in Telegram, explore tools s
 
 # Structure
 
-I am using microservice architecture. Currentlty there are 2 microservices: `bot_service` and `leaderboard_service`, which comunicate through gRPC.
+I am using microservice architecture. Currentlty there are 2 microservices: `bot_service`, `player_service` `leaderboard_service`, which comunicate through gRPC.
+
+<p align="middle">
+  <img src=files/schema.jpg width="90%" />\
+</p>
+
 
 # Install
 
@@ -36,8 +41,7 @@ git clone https://github.com/Tumypmyp/chess
 cd chess
 ```
 Update to your telegram bot token and run:
-<!-- sed 's/word1/word2/g' input.file > output.file -->
-<!-- docker build -t dependencies -f ./dependencies.Dockerfile . -->
+<!-- sed 's/word1/word2/g' input.file > output.file -->-->
 ```
 sed 's/0123:TelegramTOKEN/new:bot_token_here/g' docker-compose-example.yaml > docker-compose.yaml
 make
@@ -47,9 +51,7 @@ make
 
 By doing this project with small steps, the goal shifted a little. The goal now is to make turn-based game wrapper using microservices.
 
-* Divide the `bot_service` in smaller microservices.
-* Consider other asynchronous communication patterns
-* Update game interface
+* Divide the `player_service` in smaller microservices.
 
 
 [bot]: https://t.me/TumypmypGamesBot
