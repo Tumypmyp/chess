@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option go_package = "./player";
+
+service Play {
+    rpc MakePlayer(PlayerRequest) returns (google.protobuf.Empty);
+    rpc NewMessage(Message) returns (Response);
+}
+
+message PlayerRequest {
+    PlayerID Player = 1;
+    string Username = 2;
+}
+message Message {
+    PlayerID Player = 1;
+    int64 ChatID = 2;
+    string Command = 3;
+    string Text = 4;
+}
+
+message PlayerID {
+    int64 ID = 1;
+}
+
+message Response {
+    string Text = 1;
+    repeated ArrayButton Keyboard = 2;
+    repeated int64 ChatsID = 3;
+}
+
+message ArrayButton {
+    repeated Button Buttons = 1;
+}
+message Button {
+    string Text = 1;
+    string CallbackData = 2;
+}

@@ -8,12 +8,18 @@ services:
       dockerfile: bot_service/Dockerfile
     environment:
       - TELEGRAM_APITOKEN=0123:TelegramTOKEN
-      
+
   leaderboard:
     image: tumypmyp/chess-leaderboard
     build:
       context: .
       dockerfile: leaderboard_service/Dockerfile
+
+  player:
+    image: tumypmyp/chess-player
+    build:
+      context: .
+      dockerfile: player_service/Dockerfile
   
   redis:
     image: redis
@@ -25,3 +31,5 @@ services:
 volumes:
   cache:
     driver: local
+
+

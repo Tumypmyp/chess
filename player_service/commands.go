@@ -1,4 +1,4 @@
-package player
+package main
 
 import (
 	"context"
@@ -100,7 +100,7 @@ func (n NoConnectionError) Error() string { return "can not connect to leaderboa
 func getLeaderboard(id PlayerID) (Response, error) {
 	conn, err := grpc.Dial("leaderboard:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		return Response{Text: NoConnectionError{}.Error()}, NoConnectionError{}
 	}
 	defer conn.Close()
 	c := leaderboard.NewLeaderboardClient(conn)
