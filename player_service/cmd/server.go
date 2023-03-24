@@ -8,48 +8,49 @@ import (
 	empty "github.com/golang/protobuf/ptypes/empty"
 	"github.com/tumypmyp/chess/helpers"
 	"github.com/tumypmyp/chess/memory"
-	. "github.com/tumypmyp/chess/player"
+	pb "github.com/tumypmyp/chess/proto/player"
+	pl "github.com/tumypmyp/chess/player_service/internal/player"
 	"google.golang.org/grpc"
 )
 
 var db memory.Memory
 
 type MyPlayServer struct {
-	UnimplementedPlayServer
+	pb.UnimplementedPlayServer
 }
 
-func (p *MyPlayServer) MakePlayer(ctx context.Context, player *PlayerRequest) (*empty.Empty, error) {
-	MakePlayer(helpers.PlayerID(player.GetPlayer().GetID()), player.GetUsername(), db)
+func (p *MyPlayServer) MakePlayer(ctx context.Context, req *pb.PlayerRequest) (*empty.Empty, error) {
+	pl.MakePlayer(helpers.PlayerID(req.GetPlayer().GetID()), req.GetUsername(), db)
 	log.Println("making server in player")
 	return &empty.Empty{}, nil
 }
-func (p *MyPlayServer) NewMessage(ctx context.Context, m *Message) (*Response, error) {
 
-	r, err := NewMessage(helpers.PlayerID(m.GetPlayer().GetID()), m.GetChatID(), m.GetCommand(), m.GetText(), db)
+func (p *MyPlayServer) NewMessage(ctx context.Context, m *pb.Message) (*pb.Response, error) {
+	r, err := pl.NewMessage(helpers.PlayerID(m.GetPlayer().GetID()), m.GetChatID(), m.GetCommand(), m.GetText(), db)
 	log.Println(r, err)
 	log.Println(toKeyboard(r.Keyboard))
-	resp := &Response{
+	resp := &pb.Response{
 		Text:     r.Text,
 		Keyboard: toKeyboard(r.Keyboard),
 		ChatsID:  r.ChatsID,
 	}
-	log.Println(resp)
+	log.Println("player response", resp)
 	return resp, nil
 }
 
-func toKeyboard(k [][]helpers.Button) (keyboard []*ArrayButton) {
+func toKeyboard(k [][]helpers.Button) (keyboard []*pb.ArrayButton) {
 	if k == nil {
-		return []*ArrayButton{}
+		return []*pb.ArrayButton{}
 	}
-	keyboard = make([]*ArrayButton, len(k))
+	keyboard = make([]*pb.ArrayButton, len(k))
 
 	log.Println(keyboard)
 	for i, v := range k {
 		
 		log.Println(v)
-		keyboard[i] = &ArrayButton{Buttons: make([]*Button, len(v))}
+		keyboard[i] = &pb.ArrayButton{Buttons: make([]*pb.Button, len(v))}
 		for j, b := range v {
-			keyboard[i].Buttons[j] = &Button{Text: b.Text, CallbackData: b.CallbackData}
+			keyboard[i].Buttons[j] = &pb.Button{Text: b.Text, CallbackData: b.CallbackData}
 		}
 	}
 	return 
@@ -71,7 +72,7 @@ func main() {
 	log.Print("started linstening")
 
 	s := grpc.NewServer()
-	RegisterPlayServer(s, &MyPlayServer{})
+	pb.RegisterPlayServer(s, &MyPlayServer{})
 	if err := s.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

@@ -1,10 +1,10 @@
-package main
+package player
 
 import (
 	"reflect"
 	"testing"
 
-	g "github.com/tumypmyp/chess/game"
+	g "github.com/tumypmyp/chess/player_service/internal/game"
 	. "github.com/tumypmyp/chess/helpers"
 	"github.com/tumypmyp/chess/memory"
 )

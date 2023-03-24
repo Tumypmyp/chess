@@ -4,14 +4,14 @@ import (
 	"testing"
 
 	. "github.com/tumypmyp/chess/helpers"
-	"github.com/tumypmyp/chess/memory"
+	// "github.com/tumypmyp/chess/memory"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 func TestDoCommand(t *testing.T) {
 	t.Run("do newgame", func(t *testing.T) {
-		db := memory.NewStubDatabase()
+		// db := memory.NewStubDatabase()
 
 		cmd := "/newgame"
 		user := tgbotapi.User{ID: 123, UserName: "abc"}

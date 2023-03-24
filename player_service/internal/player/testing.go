@@ -1,10 +1,10 @@
-package main
+package player
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/tumypmyp/chess/game"
+	"github.com/tumypmyp/chess/player_service/internal/game"
 )
 
 func AssertGame(t testing.TB, got, want game.Game) {

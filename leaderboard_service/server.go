@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/tumypmyp/chess/leaderboard"
+	"github.com/tumypmyp/chess/proto/leaderboard"
 	"google.golang.org/grpc"
 )
 

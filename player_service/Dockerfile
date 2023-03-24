@@ -2,15 +2,10 @@ FROM dependencies AS build
 
 WORKDIR /chess
 # Copy the application source code.
-COPY player_service/*.go player_service/
-COPY helpers/*.go helpers/
-COPY memory/*.go memory/
-COPY leaderboard/*.go leaderboard/
-COPY game/*.go game/
-COPY player/*.go player/
+COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-	go build -o /go/bin/server ./player_service
+	go build -o /go/bin/server ./player_service/cmd
 
 ENTRYPOINT [ "/go/bin/server" ]
 

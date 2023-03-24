@@ -1,4 +1,4 @@
-package main
+package player
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	. "github.com/tumypmyp/chess/helpers"
-	"github.com/tumypmyp/chess/leaderboard"
+	"github.com/tumypmyp/chess/proto/leaderboard"
 	"github.com/tumypmyp/chess/memory"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

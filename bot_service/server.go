@@ -8,7 +8,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/tumypmyp/chess/helpers"
-	"github.com/tumypmyp/chess/player"
+	"github.com/tumypmyp/chess/proto/player"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -116,7 +116,7 @@ func NewMessage(id helpers.PlayerID, chatID int64, cmd, text string) (r helpers.
 		Keyboard: toButtons(res.GetKeyboard()),
 		ChatsID : res.GetChatsID(),
 	}
-
+	log.Println("server got:", response)
 	return response, err
 }
 

@@ -1,10 +1,10 @@
-package main
+package player
 
 import (
 	"fmt"
 	"log"
 
-	"github.com/tumypmyp/chess/game"
+	"github.com/tumypmyp/chess/player_service/internal/game"
 	. "github.com/tumypmyp/chess/helpers"
 	"github.com/tumypmyp/chess/memory"
 )

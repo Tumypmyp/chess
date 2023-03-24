@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.28.1
 // 	protoc        v3.6.1
-// source: leaderboard/leaderboard.proto
+// source: proto/leaderboard/leaderboard.proto
 
 package leaderboard
 
@@ -31,7 +31,7 @@ type List struct {
 func (x *List) Reset() {
 	*x = List{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_leaderboard_leaderboard_proto_msgTypes[0]
+		mi := &file_proto_leaderboard_leaderboard_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -44,7 +44,7 @@ func (x *List) String() string {
 func (*List) ProtoMessage() {}
 
 func (x *List) ProtoReflect() protoreflect.Message {
-	mi := &file_leaderboard_leaderboard_proto_msgTypes[0]
+	mi := &file_proto_leaderboard_leaderboard_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *List) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use List.ProtoReflect.Descriptor instead.
 func (*List) Descriptor() ([]byte, []int) {
-	return file_leaderboard_leaderboard_proto_rawDescGZIP(), []int{0}
+	return file_proto_leaderboard_leaderboard_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *List) GetS() string {
@@ -78,7 +78,7 @@ type PlayerArray struct {
 func (x *PlayerArray) Reset() {
 	*x = PlayerArray{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_leaderboard_leaderboard_proto_msgTypes[1]
+		mi := &file_proto_leaderboard_leaderboard_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -91,7 +91,7 @@ func (x *PlayerArray) String() string {
 func (*PlayerArray) ProtoMessage() {}
 
 func (x *PlayerArray) ProtoReflect() protoreflect.Message {
-	mi := &file_leaderboard_leaderboard_proto_msgTypes[1]
+	mi := &file_proto_leaderboard_leaderboard_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -104,7 +104,7 @@ func (x *PlayerArray) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerArray.ProtoReflect.Descriptor instead.
 func (*PlayerArray) Descriptor() ([]byte, []int) {
-	return file_leaderboard_leaderboard_proto_rawDescGZIP(), []int{1}
+	return file_proto_leaderboard_leaderboard_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *PlayerArray) GetPlayer() []*Player {
@@ -126,7 +126,7 @@ type Player struct {
 func (x *Player) Reset() {
 	*x = Player{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_leaderboard_leaderboard_proto_msgTypes[2]
+		mi := &file_proto_leaderboard_leaderboard_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -139,7 +139,7 @@ func (x *Player) String() string {
 func (*Player) ProtoMessage() {}
 
 func (x *Player) ProtoReflect() protoreflect.Message {
-	mi := &file_leaderboard_leaderboard_proto_msgTypes[2]
+	mi := &file_proto_leaderboard_leaderboard_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -152,7 +152,7 @@ func (x *Player) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Player.ProtoReflect.Descriptor instead.
 func (*Player) Descriptor() ([]byte, []int) {
-	return file_leaderboard_leaderboard_proto_rawDescGZIP(), []int{2}
+	return file_proto_leaderboard_leaderboard_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Player) GetWins() int32 {
@@ -169,45 +169,45 @@ func (x *Player) GetName() string {
 	return ""
 }
 
-var File_leaderboard_leaderboard_proto protoreflect.FileDescriptor
+var File_proto_leaderboard_leaderboard_proto protoreflect.FileDescriptor
 
-var file_leaderboard_leaderboard_proto_rawDesc = []byte{
-	0x0a, 0x1d, 0x6c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x62, 0x6f, 0x61, 0x72, 0x64, 0x2f, 0x6c, 0x65,
-	0x61, 0x64, 0x65, 0x72, 0x62, 0x6f, 0x61, 0x72, 0x64, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22,
-	0x14, 0x0a, 0x04, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x0c, 0x0a, 0x01, 0x73, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x01, 0x73, 0x22, 0x2e, 0x0a, 0x0b, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x41,
-	0x72, 0x72, 0x61, 0x79, 0x12, 0x1f, 0x0a, 0x06, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x18, 0x01,
-	0x20, 0x03, 0x28, 0x0b, 0x32, 0x07, 0x2e, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x52, 0x06, 0x70,
-	0x6c, 0x61, 0x79, 0x65, 0x72, 0x22, 0x30, 0x0a, 0x06, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x12,
-	0x12, 0x0a, 0x04, 0x77, 0x69, 0x6e, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x77,
-	0x69, 0x6e, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x32, 0x31, 0x0a, 0x0b, 0x4c, 0x65, 0x61, 0x64, 0x65,
-	0x72, 0x62, 0x6f, 0x61, 0x72, 0x64, 0x12, 0x22, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x4c, 0x65, 0x61,
-	0x64, 0x65, 0x72, 0x62, 0x6f, 0x61, 0x72, 0x64, 0x12, 0x07, 0x2e, 0x50, 0x6c, 0x61, 0x79, 0x65,
-	0x72, 0x1a, 0x05, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x22, 0x00, 0x42, 0x0f, 0x5a, 0x0d, 0x2e, 0x2f,
-	0x6c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x62, 0x6f, 0x61, 0x72, 0x64, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+var file_proto_leaderboard_leaderboard_proto_rawDesc = []byte{
+	0x0a, 0x23, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x6c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x62, 0x6f,
+	0x61, 0x72, 0x64, 0x2f, 0x6c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x62, 0x6f, 0x61, 0x72, 0x64, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x14, 0x0a, 0x04, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x0c, 0x0a,
+	0x01, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x01, 0x73, 0x22, 0x2e, 0x0a, 0x0b, 0x50,
+	0x6c, 0x61, 0x79, 0x65, 0x72, 0x41, 0x72, 0x72, 0x61, 0x79, 0x12, 0x1f, 0x0a, 0x06, 0x70, 0x6c,
+	0x61, 0x79, 0x65, 0x72, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x07, 0x2e, 0x50, 0x6c, 0x61,
+	0x79, 0x65, 0x72, 0x52, 0x06, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x22, 0x30, 0x0a, 0x06, 0x50,
+	0x6c, 0x61, 0x79, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x77, 0x69, 0x6e, 0x73, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x05, 0x52, 0x04, 0x77, 0x69, 0x6e, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x32, 0x31, 0x0a,
+	0x0b, 0x4c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x62, 0x6f, 0x61, 0x72, 0x64, 0x12, 0x22, 0x0a, 0x0e,
+	0x47, 0x65, 0x74, 0x4c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x62, 0x6f, 0x61, 0x72, 0x64, 0x12, 0x07,
+	0x2e, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x1a, 0x05, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x22, 0x00,
+	0x42, 0x0f, 0x5a, 0x0d, 0x2e, 0x2f, 0x6c, 0x65, 0x61, 0x64, 0x65, 0x72, 0x62, 0x6f, 0x61, 0x72,
+	0x64, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
-	file_leaderboard_leaderboard_proto_rawDescOnce sync.Once
-	file_leaderboard_leaderboard_proto_rawDescData = file_leaderboard_leaderboard_proto_rawDesc
+	file_proto_leaderboard_leaderboard_proto_rawDescOnce sync.Once
+	file_proto_leaderboard_leaderboard_proto_rawDescData = file_proto_leaderboard_leaderboard_proto_rawDesc
 )
 
-func file_leaderboard_leaderboard_proto_rawDescGZIP() []byte {
-	file_leaderboard_leaderboard_proto_rawDescOnce.Do(func() {
-		file_leaderboard_leaderboard_proto_rawDescData = protoimpl.X.CompressGZIP(file_leaderboard_leaderboard_proto_rawDescData)
+func file_proto_leaderboard_leaderboard_proto_rawDescGZIP() []byte {
+	file_proto_leaderboard_leaderboard_proto_rawDescOnce.Do(func() {
+		file_proto_leaderboard_leaderboard_proto_rawDescData = protoimpl.X.CompressGZIP(file_proto_leaderboard_leaderboard_proto_rawDescData)
 	})
-	return file_leaderboard_leaderboard_proto_rawDescData
+	return file_proto_leaderboard_leaderboard_proto_rawDescData
 }
 
-var file_leaderboard_leaderboard_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_leaderboard_leaderboard_proto_goTypes = []interface{}{
+var file_proto_leaderboard_leaderboard_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_proto_leaderboard_leaderboard_proto_goTypes = []interface{}{
 	(*List)(nil),        // 0: List
 	(*PlayerArray)(nil), // 1: PlayerArray
 	(*Player)(nil),      // 2: Player
 }
-var file_leaderboard_leaderboard_proto_depIdxs = []int32{
+var file_proto_leaderboard_leaderboard_proto_depIdxs = []int32{
 	2, // 0: PlayerArray.player:type_name -> Player
 	2, // 1: Leaderboard.GetLeaderboard:input_type -> Player
 	0, // 2: Leaderboard.GetLeaderboard:output_type -> List
@@ -218,13 +218,13 @@ var file_leaderboard_leaderboard_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_leaderboard_leaderboard_proto_init() }
-func file_leaderboard_leaderboard_proto_init() {
-	if File_leaderboard_leaderboard_proto != nil {
+func init() { file_proto_leaderboard_leaderboard_proto_init() }
+func file_proto_leaderboard_leaderboard_proto_init() {
+	if File_proto_leaderboard_leaderboard_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_leaderboard_leaderboard_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_proto_leaderboard_leaderboard_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*List); i {
 			case 0:
 				return &v.state
@@ -236,7 +236,7 @@ func file_leaderboard_leaderboard_proto_init() {
 				return nil
 			}
 		}
-		file_leaderboard_leaderboard_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_proto_leaderboard_leaderboard_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PlayerArray); i {
 			case 0:
 				return &v.state
@@ -248,7 +248,7 @@ func file_leaderboard_leaderboard_proto_init() {
 				return nil
 			}
 		}
-		file_leaderboard_leaderboard_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_proto_leaderboard_leaderboard_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Player); i {
 			case 0:
 				return &v.state
@@ -265,18 +265,18 @@ func file_leaderboard_leaderboard_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_leaderboard_leaderboard_proto_rawDesc,
+			RawDescriptor: file_proto_leaderboard_leaderboard_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_leaderboard_leaderboard_proto_goTypes,
-		DependencyIndexes: file_leaderboard_leaderboard_proto_depIdxs,
-		MessageInfos:      file_leaderboard_leaderboard_proto_msgTypes,
+		GoTypes:           file_proto_leaderboard_leaderboard_proto_goTypes,
+		DependencyIndexes: file_proto_leaderboard_leaderboard_proto_depIdxs,
+		MessageInfos:      file_proto_leaderboard_leaderboard_proto_msgTypes,
 	}.Build()
-	File_leaderboard_leaderboard_proto = out.File
-	file_leaderboard_leaderboard_proto_rawDesc = nil
-	file_leaderboard_leaderboard_proto_goTypes = nil
-	file_leaderboard_leaderboard_proto_depIdxs = nil
+	File_proto_leaderboard_leaderboard_proto = out.File
+	file_proto_leaderboard_leaderboard_proto_rawDesc = nil
+	file_proto_leaderboard_leaderboard_proto_goTypes = nil
+	file_proto_leaderboard_leaderboard_proto_depIdxs = nil
 }
