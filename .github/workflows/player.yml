@@ -5,10 +5,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'leaderboard/**'
-      - 'player/**'
-      - 'game/**'
-      - 'helpers/**'
+      - 'player-service/**'
   workflow_dispatch:
 
 jobs:
