@@ -6,6 +6,7 @@ import (
 	"log"
 	. "github.com/tumypmyp/chess/helpers"
 	
+	pb "github.com/tumypmyp/chess/proto/player"
 	"github.com/tumypmyp/chess/player_service/pkg/memory"
 )
 
@@ -81,6 +82,28 @@ func NewGame(db memory.Memory, playersID ...PlayerID) Game {
 	SetGame(game, db)
 	return game
 }
+
+
+
+// sends status to all players
+func SendStatus(g Game) pb.Response {
+	return pb.Response{Text: g.String(), Keyboard: makeGameKeyboard(g), ChatsID: g.ChatsID}
+}
+
+func makeGameKeyboard(g Game) (keyboard []*pb.ArrayButton) {
+	keyboard = make([]*pb.ArrayButton, len(g.Board))
+
+	for i, v := range g.Board {
+		keyboard[i] = &pb.ArrayButton{Buttons: make([]*pb.Button, len(v))}
+		for j, b := range v {
+			keyboard[i].Buttons[j] = &pb.Button{Text: b.String(), CallbackData: fmt.Sprintf("%d%d", i, j)}
+		}
+	}
+	
+	// log.Println(keyboard)
+	return
+}
+
 
 // get player from memory
 func getPlayerUsername(ID PlayerID, m memory.Memory) (string, error) {

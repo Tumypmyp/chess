@@ -3,10 +3,11 @@ package player
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	. "github.com/tumypmyp/chess/helpers"
+	
+	g "github.com/tumypmyp/chess/player_service/internal/game"
 	"github.com/tumypmyp/chess/proto/leaderboard"
 	pb "github.com/tumypmyp/chess/proto/player"
 	"github.com/tumypmyp/chess/player_service/pkg/memory"
@@ -32,7 +33,7 @@ func Cmd(db memory.Memory, cmd, text string, p PlayerID, ChatID int64) (r pb.Res
 	newgame := "newgame"
 	leaderboard := "leaderboard"
 
-	log.Println(cmd, text)
+	// log.Println(cmd, text)
 	switch cmd {
 	case newgame:
 		r, err = doNewGame(db, p, text)
@@ -59,7 +60,7 @@ func Do(id PlayerID, db memory.Memory, move string, chatID int64) (pb.Response, 
 		e := DatabaseStoringError{err}
 		return pb.Response{Text: e.Error(), ChatsID: []int64{chatID}}, e
 	}
-	return SendStatus(game), nil
+	return g.SendStatus(game), nil
 
 }
 
