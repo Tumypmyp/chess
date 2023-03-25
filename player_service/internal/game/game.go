@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	. "github.com/tumypmyp/chess/helpers"
-	"github.com/tumypmyp/chess/memory"
+	
+	"github.com/tumypmyp/chess/player_service/pkg/memory"
 )
 
 type Mark int

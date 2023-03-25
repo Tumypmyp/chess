@@ -6,7 +6,9 @@ import (
 
 	"github.com/tumypmyp/chess/player_service/internal/game"
 	. "github.com/tumypmyp/chess/helpers"
-	"github.com/tumypmyp/chess/memory"
+	
+	"github.com/tumypmyp/chess/player_service/pkg/memory"
+	pb "github.com/tumypmyp/chess/proto/player"
 )
 
 type Player struct {
@@ -45,7 +47,7 @@ func (p *Player) AddNewGame(gameID int64) {
 	p.GamesID = append(p.GamesID, gameID)
 }
 
-func NewGame(db memory.Memory, players ...PlayerID) Response {
+func NewGame(db memory.Memory, players ...PlayerID) pb.Response {
 	current_game := game.NewGame(db, players...)
 
 	for _, id := range players {
@@ -83,10 +85,10 @@ func cmdToPlayersID(db memory.Memory, cmd string) (playersID []PlayerID, err err
 	return playersID, nil
 }
 
-func doNewGame(db memory.Memory, id PlayerID, cmd string) (Response, error) {
+func doNewGame(db memory.Memory, id PlayerID, cmd string) (pb.Response, error) {
 	p, err := getPlayer(id, db)
 	if err != nil {
-		return Response{Text: err.Error()}, err
+		return pb.Response{Text: err.Error()}, err
 	}
 	players, err := cmdToPlayersID(db, cmd)
 	players = append([]PlayerID{p.ID}, players...)
@@ -96,19 +98,21 @@ func doNewGame(db memory.Memory, id PlayerID, cmd string) (Response, error) {
 // add p.Update()
 
 // sends status to all players
-func SendStatus(g game.Game) Response {
-	return Response{Text: g.String(), Keyboard: makeGameKeyboard(g), ChatsID: g.ChatsID}
+func SendStatus(g game.Game) pb.Response {
+	return pb.Response{Text: g.String(), Keyboard: makeGameKeyboard(g), ChatsID: g.ChatsID}
 }
 
-func makeGameKeyboard(g game.Game) (keyboard [][]Button) {
-	keyboard = make([][]Button, len(g.Board))
+func makeGameKeyboard(g game.Game) (keyboard []*pb.ArrayButton) {
+	keyboard = make([]*pb.ArrayButton, len(g.Board))
 
 	for i, v := range g.Board {
-		keyboard[i] = make([]Button, len(g.Board[i]))
-		for j, _ := range v {
-			keyboard[i][j] = Button{g.Board[i][j].String(), fmt.Sprintf("%d%d", i, j)}
+		keyboard[i] = &pb.ArrayButton{Buttons: make([]*pb.Button, len(v))}
+		for j, b := range v {
+			keyboard[i].Buttons[j] = &pb.Button{Text: b.String(), CallbackData: fmt.Sprintf("%d%d", i, j)}
 		}
 	}
+	
+	log.Println(keyboard)
 	return
 }
 

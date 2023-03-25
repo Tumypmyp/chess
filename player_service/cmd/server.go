@@ -7,7 +7,7 @@ import (
 
 	empty "github.com/golang/protobuf/ptypes/empty"
 	"github.com/tumypmyp/chess/helpers"
-	"github.com/tumypmyp/chess/memory"
+	"github.com/tumypmyp/chess/player_service/pkg/memory"
 	pb "github.com/tumypmyp/chess/proto/player"
 	pl "github.com/tumypmyp/chess/player_service/internal/player"
 	"google.golang.org/grpc"
@@ -28,33 +28,33 @@ func (p *MyPlayServer) MakePlayer(ctx context.Context, req *pb.PlayerRequest) (*
 func (p *MyPlayServer) NewMessage(ctx context.Context, m *pb.Message) (*pb.Response, error) {
 	r, err := pl.NewMessage(helpers.PlayerID(m.GetPlayer().GetID()), m.GetChatID(), m.GetCommand(), m.GetText(), db)
 	log.Println(r, err)
-	log.Println(toKeyboard(r.Keyboard))
-	resp := &pb.Response{
-		Text:     r.Text,
-		Keyboard: toKeyboard(r.Keyboard),
-		ChatsID:  r.ChatsID,
-	}
-	log.Println("player response", resp)
-	return resp, nil
+	log.Println(r.Keyboard)
+	// resp := &pb.Response{
+	// 	Text:     r.Text,
+	// 	Keyboard: r.Keyboard,
+	// 	ChatsID:  r.ChatsID,
+	// }
+	log.Println("player response", r)
+	return &r, nil
 }
 
-func toKeyboard(k [][]helpers.Button) (keyboard []*pb.ArrayButton) {
-	if k == nil {
-		return []*pb.ArrayButton{}
-	}
-	keyboard = make([]*pb.ArrayButton, len(k))
+// func toKeyboard(k [][]helpers.Button) (keyboard []*pb.ArrayButton) {
+// 	if k == nil {
+// 		return []*pb.ArrayButton{}
+// 	}
+// 	keyboard = make([]*pb.ArrayButton, len(k))
 
-	log.Println(keyboard)
-	for i, v := range k {
+// 	log.Println(keyboard)
+// 	for i, v := range k {
 		
-		log.Println(v)
-		keyboard[i] = &pb.ArrayButton{Buttons: make([]*pb.Button, len(v))}
-		for j, b := range v {
-			keyboard[i].Buttons[j] = &pb.Button{Text: b.Text, CallbackData: b.CallbackData}
-		}
-	}
-	return 
-}
+// 		log.Println(v)
+// 		keyboard[i] = &pb.ArrayButton{Buttons: make([]*pb.Button, len(v))}
+// 		for j, b := range v {
+// 			keyboard[i].Buttons[j] = &pb.Button{Text: b.Text, CallbackData: b.CallbackData}
+// 		}
+// 	}
+// 	return 
+// }
 
 func main() {
 	var err error

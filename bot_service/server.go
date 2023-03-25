@@ -8,7 +8,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/tumypmyp/chess/helpers"
-	"github.com/tumypmyp/chess/proto/player"
+	pb "github.com/tumypmyp/chess/proto/player"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -33,10 +33,11 @@ func GetUpdates(bot *tgbotapi.BotAPI) tgbotapi.UpdatesChannel {
 }
 
 // sends response message via bot
-func SendResponse(chatID int64, r helpers.Response, bot Sender) {
+func SendResponse(chatID int64, r pb.Response, bot Sender) {
 	msg := tgbotapi.NewMessage(chatID, r.Text)
-	msg.ReplyMarkup = makeKeyboard(r.Keyboard)
-
+	if len(r.Keyboard) > 0 {
+		msg.ReplyMarkup = makeKeyboard(r.Keyboard)
+	}
 	if _, err := bot.Send(msg); err != nil {
 		log.Printf("cant send: %v", err)
 	}
@@ -73,7 +74,7 @@ func processUpdate(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 }
 
 // calls player command function from update
-func Do(update tgbotapi.Update, text string) (r helpers.Response, err error) {
+func Do(update tgbotapi.Update, text string) (r pb.Response, err error) {
 	id := helpers.PlayerID(update.SentFrom().ID)
 
 	var cmd string
@@ -95,63 +96,49 @@ func Do(update tgbotapi.Update, text string) (r helpers.Response, err error) {
 }
 
 
-func NewMessage(id helpers.PlayerID, chatID int64, cmd, text string) (r helpers.Response, err error) {
-	conn, err := grpc.Dial("player:8888", grpc.WithTransportCredentials(insecure.NewCredentials()))
+func NewMessage(id helpers.PlayerID, chatID int64, cmd, text string) (r pb.Response, err error) {
+	conn, err := grpc.Dial("localhost:8888", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := player.NewPlayClient(conn)
+	c :=  pb.NewPlayClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
 	defer cancel()
-	res, err := c.NewMessage(ctx, &player.Message{
-		Player: &player.PlayerID{ID:int64(id)},
+	res, err := c.NewMessage(ctx, &pb.Message{
+		Player: &pb.PlayerID{ID:int64(id)},
 		ChatID: chatID,
 		Command:cmd,
 		Text   : text,
 	})
-	response := helpers.Response{
-		Text : res.GetText(),
-		Keyboard: toButtons(res.GetKeyboard()),
-		ChatsID : res.GetChatsID(),
+	// response := pb.Response{
+	// 	Text : res.GetText(),
+	// 	Keyboard: toButtons(res.GetKeyboard()),
+	// 	ChatsID : res.GetChatsID(),
+	// }
+	if err != nil {
+		log.Println(err)
 	}
-	log.Println("server got:", response)
-	return response, err
-}
-
-func toButtons(k []*player.ArrayButton) (keyboard [][]helpers.Button) {
-	if len(k) == 0 {
-		return 
-	}
-	keyboard = make([][]helpers.Button, len(k))
-
-	for i, vec := range k {
-		v := vec.GetButtons()
-		keyboard[i] = make([]helpers.Button, len(v))
-		for j, b := range v {
-			keyboard[i][j] = helpers.Button{b.GetText(), b.GetCallbackData()}
-		}
-	}
-	return keyboard
-
+	log.Printf("server got: %v\n", res)
+	return *res, err
 }
 
 func MakePlayer(id helpers.PlayerID, username string) error {
 
 	log.Println("connecting to 8888")
-	conn, err := grpc.Dial("player:8888", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial("localhost:8888", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := player.NewPlayClient(conn)
+	c :=  pb.NewPlayClient(conn)
 
 	log.Println("new client")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
 	defer cancel()
 	log.Println("request")
-	_, err = c.MakePlayer(ctx, &player.PlayerRequest{Username: username, Player: &player.PlayerID{ID:int64(id)}})
+	_, err = c.MakePlayer(ctx, & pb.PlayerRequest{Username: username, Player: & pb.PlayerID{ID:int64(id)}})
 
 	log.Println("response ", err)
 	return err
@@ -160,16 +147,33 @@ func MakePlayer(id helpers.PlayerID, username string) error {
 
 
 // make inline keyboard for game
-func makeKeyboard(keyboard [][]helpers.Button) tgbotapi.InlineKeyboardMarkup {
+func makeKeyboard(keyboard []* pb.ArrayButton) tgbotapi.InlineKeyboardMarkup {
 	markup := make([][]tgbotapi.InlineKeyboardButton, len(keyboard))
 
 	for i, v := range keyboard {
-		markup[i] = make([]tgbotapi.InlineKeyboardButton, len(keyboard[i]))
-		for j, _ := range v {
-			markup[i][j] = tgbotapi.NewInlineKeyboardButtonData(keyboard[i][j].Text, keyboard[i][j].CallbackData)
+		markup[i] = make([]tgbotapi.InlineKeyboardButton, len(v.GetButtons()))
+		for j, b := range v.GetButtons() {
+			markup[i][j] = tgbotapi.NewInlineKeyboardButtonData(b.GetText(), b.GetCallbackData())
 		}
 	}
 	return tgbotapi.InlineKeyboardMarkup{
 		InlineKeyboard: markup,
 	}
 }
+
+// func toButtons(k []* pb.ArrayButton) (keyboard [][]helpers.Button) {
+// 	if len(k) == 0 {
+// 		return 
+// 	}
+// 	keyboard = make([][]helpers.Button, len(k))
+
+// 	for i, vec := range k {
+// 		v := vec.GetButtons()
+// 		keyboard[i] = make([]helpers.Button, len(v))
+// 		for j, b := range v {
+// 			keyboard[i][j] = helpers.Button{b.GetText(), b.GetCallbackData()}
+// 		}
+// 	}
+// 	return keyboard
+
+// }

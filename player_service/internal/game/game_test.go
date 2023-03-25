@@ -4,7 +4,8 @@ import (
 	"testing"
 
 	. "github.com/tumypmyp/chess/helpers"
-	"github.com/tumypmyp/chess/memory"
+	
+	"github.com/tumypmyp/chess/player_service/pkg/memory"
 )
 
 func TestGame(t *testing.T) {

@@ -6,7 +6,8 @@ import (
 
 	g "github.com/tumypmyp/chess/player_service/internal/game"
 	. "github.com/tumypmyp/chess/helpers"
-	"github.com/tumypmyp/chess/memory"
+	
+	"github.com/tumypmyp/chess/player_service/pkg/memory"
 )
 
 func TestPlayer(t *testing.T) {
