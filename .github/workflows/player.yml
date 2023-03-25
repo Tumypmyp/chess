@@ -24,8 +24,8 @@ jobs:
         go-version: 1.19
 
     - name: Build player
-      run: go build -o ./service -v ./player
+      run: go build -o ./service -v ./player-service/cmd/
 
     - name: Test player
-      run: go test -v ./player
+      run: go test -v ./player-service/...
       
