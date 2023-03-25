@@ -37,9 +37,7 @@ func Cmd(db memory.Memory, cmd, text string, p PlayerID, ChatID int64) (r pb.Res
 	case newgame:
 		r, err = doNewGame(db, p, text)
 	case leaderboard:
-		r1, err2 := getLeaderboard(p)
-		r = r1
-		err = err2
+		r, err = getLeaderboard(p, ChatID)
 	default:
 		err = NoSuchCommandError{cmd}
 		r = pb.Response{Text: err.Error(), ChatsID: []int64{ChatID}}
@@ -98,7 +96,7 @@ type NoConnectionError struct{}
 func (n NoConnectionError) Error() string { return "can not connect to leaderboard" }
 
 // get leaderboard with gRPC call
-func getLeaderboard(id PlayerID) (pb.Response, error) {
+func getLeaderboard(id PlayerID, ChatID int64) (pb.Response, error) {
 	conn, err := grpc.Dial("leaderboard:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return pb.Response{Text: NoConnectionError{}.Error()}, NoConnectionError{}
@@ -111,7 +109,7 @@ func getLeaderboard(id PlayerID) (pb.Response, error) {
 	defer cancel()
 	r, err := c.GetLeaderboard(ctx, &leaderboard.Player{Name: fmt.Sprintf("%d", id)})
 	if err != nil {
-		return pb.Response{Text: NoConnectionError{}.Error()}, NoConnectionError{}
+		return pb.Response{Text: NoConnectionError{}.Error(), ChatsID: []int64{ChatID}}, NoConnectionError{}
 
 	}
 	return pb.Response{Text: r.GetS()}, nil
