@@ -23,7 +23,8 @@ func NewPlayer(db memory.Memory, ID PlayerID, Username string) Player {
 		Username: Username,
 	}
 	db.Set(fmt.Sprintf("username:%v", p.Username), p.ID)
-	p.Store(db)
+	Store(p, db)
+	StoreUsername(p, db)
 	return p
 }
 
@@ -56,15 +57,25 @@ func NewGame(db memory.Memory, players ...PlayerID) pb.Response {
 			log.Println("no such player", id)
 		}
 		p.AddNewGame(current_game.ID)
-		p.Store(db)
+		Store(p, db)
 	}
 
 	return SendStatus(current_game)
 }
 
-type NoSuchPlayerError struct{}
+type NoUsernameInDatabaseError struct{}
 
-func (n NoSuchPlayerError) Error() string { return "can not find player" }
+func (n NoUsernameInDatabaseError) Error() string { return "can not find player by username" }
+
+func getID(username string, db memory.Memory) (id PlayerID, err error) {
+	var clientID int64
+	key := fmt.Sprintf("username:%v", username)
+	if err = db.Get(key, &clientID); err != nil {
+		return id, NoUsernameInDatabaseError{}
+	}
+	return PlayerID(clientID), err
+}
+
 
 func cmdToPlayersID(db memory.Memory, cmd string) (playersID []PlayerID, err error) {
 	others := make([]string, 3)
@@ -75,7 +86,7 @@ func cmdToPlayersID(db memory.Memory, cmd string) (playersID []PlayerID, err err
 		var clientID int64
 		key := fmt.Sprintf("username:%v", p2)
 		if err = db.Get(key, &clientID); err != nil {
-			return playersID, NoSuchPlayerError{}
+			return playersID, NoUsernameInDatabaseError{}
 		}
 
 		id := PlayerID(clientID)
@@ -95,7 +106,6 @@ func doNewGame(db memory.Memory, id PlayerID, cmd string) (pb.Response, error) {
 	return NewGame(db, players...), err
 }
 
-// add p.Update()
 
 // sends status to all players
 func SendStatus(g game.Game) pb.Response {
@@ -112,23 +122,22 @@ func makeGameKeyboard(g game.Game) (keyboard []*pb.ArrayButton) {
 		}
 	}
 	
-	log.Println(keyboard)
+	// log.Println(keyboard)
 	return
 }
 
 // Update memory.Memory with new value of a player
-func (p Player) Store(m memory.Memory) error {
+func Store(p Player, m memory.Memory) error {
 	key := fmt.Sprintf("user:%d", p.ID)
-	p.StoreID(m)
 	if err := m.Set(key, p); err != nil {
 		return fmt.Errorf("error when storing player %v: %w", p, err)
 	}
 	return nil
 }
 
-func (p Player) StoreID(m memory.Memory) error {
-	key := fmt.Sprintf("userID:%d", p.ID)
-	if err := m.Set(key, p.Username); err != nil {
+func StoreUsername(p Player, m memory.Memory) error {
+	key := fmt.Sprintf("username:%s", p.Username)
+	if err := m.Set(key, p.ID); err != nil {
 		return fmt.Errorf("error when storing player username %v: %w", p.Username, err)
 	}
 	return nil

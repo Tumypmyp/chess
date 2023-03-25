@@ -34,4 +34,9 @@ func AssertError(t testing.TB, err error) {
 	}
 }
 
-
+func AssertPlayerID(t testing.TB, got, want PlayerID) {
+	t.Helper()
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}

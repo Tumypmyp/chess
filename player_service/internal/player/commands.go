@@ -73,11 +73,19 @@ func MakePlayer(id PlayerID, username string, db memory.Memory) (player Player) 
 	return
 }
 
+
+
+type NoSuchPlayerError struct{
+	ID PlayerID
+}
+
+func (n NoSuchPlayerError) Error() string { return fmt.Sprintf("can not get player with id: %v", n.ID) }
+
 // get player from memory
 func getPlayer(ID PlayerID, m memory.Memory) (p Player, err error) {
 	key := fmt.Sprintf("user:%d", ID)
 	if err = m.Get(key, &p); err != nil {
-		return p, fmt.Errorf("can not get player by id: %w", err)
+		return p, NoSuchPlayerError{ID: ID}
 	}
 	return
 }

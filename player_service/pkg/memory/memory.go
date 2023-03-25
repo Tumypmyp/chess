@@ -8,8 +8,6 @@ import (
 	
 )
 
-
-
 var ctx = context.Background()
 
 type Memory interface {
@@ -30,8 +28,8 @@ func NewDatabase() (Database, error) {
 	})}
 	_, err := db.client.Ping(ctx).Result()
 	return db, err
-
 }
+
 func (db Database) Set(key string, value interface{}) error {
 	p, err := json.Marshal(value)
 	if err != nil {
@@ -49,6 +47,7 @@ func (db Database) Get(key string, dest interface{}) error {
 	}
 	return json.Unmarshal(value, dest)
 }
+
 func (db Database) Incr(key string) (int64, error) {
 	val, err := db.client.Incr(ctx, key).Result()
 	return val, err

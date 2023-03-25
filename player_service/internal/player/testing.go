@@ -26,5 +26,12 @@ func AssertBoard(t testing.TB, got, want [3][3]game.Mark) {
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v, want %v", got, want)
 	}
+}
 
+
+func AssertPlayer(t testing.TB, got, want Player) {
+	t.Helper()
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
+	}
 }

@@ -83,13 +83,17 @@ func NewGame(db memory.Memory, playersID ...PlayerID) Game {
 }
 
 // get player from memory
-func getPlayerUsername(ID PlayerID, m memory.Memory) (name string, err error) {
-	key := fmt.Sprintf("userID:%d", ID)
-
-	if err = m.Get(key, &name); err != nil {
-		return name, fmt.Errorf("can not get player by id: %w", err)
+func getPlayerUsername(ID PlayerID, m memory.Memory) (string, error) {
+	key := fmt.Sprintf("user:%d", ID)
+	var p struct {
+		ID       PlayerID
+		GamesID  []int64 `json:"gamesID"`
+		Username string  `json:"username"`
 	}
-	return
+	if err := m.Get(key, &p); err != nil {
+		return p.Username, fmt.Errorf("can not get player by id: %w", err)
+	}
+	return p.Username, nil
 }
 
 func (g *Game) AddChat(chatID int64) {

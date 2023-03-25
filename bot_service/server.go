@@ -112,11 +112,7 @@ func NewMessage(id helpers.PlayerID, chatID int64, cmd, text string) (r pb.Respo
 		Command:cmd,
 		Text   : text,
 	})
-	// response := pb.Response{
-	// 	Text : res.GetText(),
-	// 	Keyboard: toButtons(res.GetKeyboard()),
-	// 	ChatsID : res.GetChatsID(),
-	// }
+
 	if err != nil {
 		log.Println(err)
 	}
@@ -160,20 +156,3 @@ func makeKeyboard(keyboard []* pb.ArrayButton) tgbotapi.InlineKeyboardMarkup {
 		InlineKeyboard: markup,
 	}
 }
-
-// func toButtons(k []* pb.ArrayButton) (keyboard [][]helpers.Button) {
-// 	if len(k) == 0 {
-// 		return 
-// 	}
-// 	keyboard = make([][]helpers.Button, len(k))
-
-// 	for i, vec := range k {
-// 		v := vec.GetButtons()
-// 		keyboard[i] = make([]helpers.Button, len(v))
-// 		for j, b := range v {
-// 			keyboard[i][j] = helpers.Button{b.GetText(), b.GetCallbackData()}
-// 		}
-// 	}
-// 	return keyboard
-
-// }
