@@ -40,3 +40,11 @@ func AssertPlayerID(t testing.TB, got, want PlayerID) {
 		t.Errorf("got %v, want %v", got, want)
 	}
 }
+
+
+func AssertExactError(t testing.TB, a, b error) {
+	t.Helper()
+	if a != b {
+		t.Fatalf("got error %v, but wanted: %v", a, b)
+	}
+}

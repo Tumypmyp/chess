@@ -8,6 +8,25 @@ import (
 	"github.com/tumypmyp/chess/player_service/pkg/memory"
 )
 
+
+func TestGameMemory(t *testing.T) {
+	t.Run("get/set", func(t *testing.T) {
+		db := memory.NewStubDatabase()
+		id := int64(1234)
+		_, err := GetGame(id, db)
+		AssertExactError(t, err, NoSuchGameError{ID: id})
+		
+		game := Game{ID:id}
+		err = SetGame(game, db)
+		AssertNoError(t, err)
+
+		got, err := GetGame(id, db)
+		AssertNoError(t, err)
+		AssertGame(t, got, game)
+	})
+}
+
+
 func TestGame(t *testing.T) {
 	t.Run("move", func(t *testing.T) {
 		db := memory.NewStubDatabase()

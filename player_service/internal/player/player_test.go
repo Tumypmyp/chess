@@ -11,7 +11,6 @@ import (
 )
 
 func TestPlayerMemory(t *testing.T) {
-
 	t.Run("get", func(t *testing.T) {
 		db := memory.NewStubDatabase()
 		id := PlayerID(12)
@@ -29,22 +28,29 @@ func TestPlayerMemory(t *testing.T) {
 		db := memory.NewStubDatabase()
 		id := PlayerID(1234)
 		p := Player{ID: id}
-		err := Store(p, db)
+
+		_, err := getPlayer(id, db)
+		AssertExactError(t, err, NoSuchPlayerError{ID: id})
+
+		
+		err = StorePlayer(p, db)
 		AssertNoError(t, err)
 		
 		got, err := getPlayer(id, db)
 		AssertNoError(t, err)
 		AssertPlayer(t, got, p)
 	})
-	t.Run("storeUsername/get", func(t *testing.T) {
+	t.Run("store ID/get", func(t *testing.T) {
 		db := memory.NewStubDatabase()
 		id := PlayerID(1234)
 		p := Player{
 			ID: id,
 			Username: "aba",
 		}
+		_, err := getID("aba", db)
+		AssertExactError(t, err, NoUsernameInDatabaseError{})
 
-		err := StoreUsername(p, db)
+		err = StoreID(p, db)
 		AssertNoError(t, err)
 
 		got, err := getID("aba", db)

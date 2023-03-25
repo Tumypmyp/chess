@@ -14,12 +14,6 @@ func AssertGame(t testing.TB, got, want game.Game) {
 	}
 }
 
-func AssertExactError(t testing.TB, a, b error) {
-	t.Helper()
-	if a != b {
-		t.Fatalf("got error %v, but wanted: %v", a, b)
-	}
-}
 
 func AssertBoard(t testing.TB, got, want [3][3]game.Mark) {
 	t.Helper()

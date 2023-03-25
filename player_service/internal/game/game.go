@@ -3,7 +3,7 @@ package game
 import (
 	"errors"
 	"fmt"
-
+	"log"
 	. "github.com/tumypmyp/chess/helpers"
 	
 	"github.com/tumypmyp/chess/player_service/pkg/memory"
@@ -65,7 +65,7 @@ type Game struct {
 func NewGame(db memory.Memory, playersID ...PlayerID) Game {
 	ID, err := db.Incr("gameID")
 	if err != nil {
-		// log.Printf("cant restore id %v", err)
+		log.Printf("cant restore id: %v", err)
 	}
 	game := Game{
 		ID: ID,
@@ -78,7 +78,7 @@ func NewGame(db memory.Memory, playersID ...PlayerID) Game {
 		game.Description += fmt.Sprintf("@%s ", name)
 	}
 
-	db.Set(fmt.Sprintf("game:%d", ID), game)
+	SetGame(game, db)
 	return game
 }
 
@@ -169,4 +169,30 @@ func (g *Game) UpdateStatus() {
 		}
 	}
 
+}
+
+
+type NoSuchGameError struct{
+	ID int64
+}
+
+func (n NoSuchGameError) Error() string { return fmt.Sprintf("can not get game with id: %v", n.ID) }
+
+// get game from memory
+func GetGame(ID int64, m memory.Memory) (p Game, err error) {
+	key := fmt.Sprintf("game:%d", ID)
+	if err = m.Get(key, &p); err != nil {
+		return p, NoSuchGameError{ID: ID}
+	}
+	return
+}
+
+
+// Update memory.Memory with new value of gameID->game
+func SetGame(g Game, m memory.Memory) error {
+	key := fmt.Sprintf("game:%d", g.ID)
+	if err := m.Set(key, g); err != nil {
+		return fmt.Errorf("error when storing game %v: %w", g, err)
+	}
+	return nil
 }

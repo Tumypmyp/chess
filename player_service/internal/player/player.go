@@ -22,10 +22,20 @@ func NewPlayer(db memory.Memory, ID PlayerID, Username string) Player {
 		ID:       ID,
 		Username: Username,
 	}
-	db.Set(fmt.Sprintf("username:%v", p.Username), p.ID)
-	Store(p, db)
-	StoreUsername(p, db)
+	StorePlayer(p, db)
+	StoreID(p, db)
 	return p
+}
+
+
+func CurrentGame(id PlayerID, db memory.Memory) (g game.Game, err error) {
+	p, err := getPlayer(id, db)
+	if len(p.GamesID) == 0 {
+		return g, NoCurrentGameError{}
+	}
+	gameID := p.GamesID[len(p.GamesID)-1]
+	g, err = game.GetGame(gameID, db)
+	return
 }
 
 type NoCurrentGameError struct{}
@@ -44,36 +54,26 @@ func (p *Player) CurrentGame(db memory.Memory) (game game.Game, err error) {
 	return
 }
 
+// add new game to a player by id
+func AddGameToPlayer(id PlayerID, gameID int64, db memory.Memory) {
+	p, err := getPlayer(id, db)
+	if err != nil {
+		log.Println("no such player", id)
+	}
+	p.GamesID = append(p.GamesID, gameID)
+	StorePlayer(p, db)
+}
+
 func (p *Player) AddNewGame(gameID int64) {
 	p.GamesID = append(p.GamesID, gameID)
 }
 
 func NewGame(db memory.Memory, players ...PlayerID) pb.Response {
 	current_game := game.NewGame(db, players...)
-
 	for _, id := range players {
-		p, err := getPlayer(id, db)
-		if err != nil {
-			log.Println("no such player", id)
-		}
-		p.AddNewGame(current_game.ID)
-		Store(p, db)
+		AddGameToPlayer(id, current_game.ID, db)
 	}
-
 	return SendStatus(current_game)
-}
-
-type NoUsernameInDatabaseError struct{}
-
-func (n NoUsernameInDatabaseError) Error() string { return "can not find player by username" }
-
-func getID(username string, db memory.Memory) (id PlayerID, err error) {
-	var clientID int64
-	key := fmt.Sprintf("username:%v", username)
-	if err = db.Get(key, &clientID); err != nil {
-		return id, NoUsernameInDatabaseError{}
-	}
-	return PlayerID(clientID), err
 }
 
 
@@ -126,8 +126,8 @@ func makeGameKeyboard(g game.Game) (keyboard []*pb.ArrayButton) {
 	return
 }
 
-// Update memory.Memory with new value of a player
-func Store(p Player, m memory.Memory) error {
+// Update memory.Memory with new value of playerID->player
+func StorePlayer(p Player, m memory.Memory) error {
 	key := fmt.Sprintf("user:%d", p.ID)
 	if err := m.Set(key, p); err != nil {
 		return fmt.Errorf("error when storing player %v: %w", p, err)
@@ -135,10 +135,43 @@ func Store(p Player, m memory.Memory) error {
 	return nil
 }
 
-func StoreUsername(p Player, m memory.Memory) error {
+
+// update memory with new username->playerID
+func StoreID(p Player, m memory.Memory) error {
 	key := fmt.Sprintf("username:%s", p.Username)
 	if err := m.Set(key, p.ID); err != nil {
 		return fmt.Errorf("error when storing player username %v: %w", p.Username, err)
 	}
 	return nil
+}
+
+
+type NoSuchPlayerError struct{
+	ID PlayerID
+}
+
+func (n NoSuchPlayerError) Error() string { return fmt.Sprintf("can not get player with id: %v", n.ID) }
+
+// get player from memory
+func getPlayer(ID PlayerID, m memory.Memory) (p Player, err error) {
+	key := fmt.Sprintf("user:%d", ID)
+	if err = m.Get(key, &p); err != nil {
+		return p, NoSuchPlayerError{ID: ID}
+	}
+	return
+}
+
+
+
+type NoUsernameInDatabaseError struct{}
+
+func (n NoUsernameInDatabaseError) Error() string { return "can not find player by username" }
+
+func getID(username string, db memory.Memory) (id PlayerID, err error) {
+	var clientID int64
+	key := fmt.Sprintf("username:%v", username)
+	if err = db.Get(key, &clientID); err != nil {
+		return id, NoUsernameInDatabaseError{}
+	}
+	return PlayerID(clientID), err
 }
