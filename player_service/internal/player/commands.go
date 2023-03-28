@@ -58,8 +58,8 @@ func (d DatabaseStoringError) Error() string {
 
 // Move player
 func Do(id PlayerID, db memory.Memory, move string, chatID int64) (pb.Response, error) {
-	p, _ := getPlayer(id, db)
-	game, err := p.CurrentGame(db)
+	// p, _ := getPlayer(id, db)
+	game, err := CurrentGame(id, db)
 	if err != nil {
 		return pb.Response{Text: err.Error(), ChatsID: []int64{chatID}}, err
 	}

@@ -74,19 +74,6 @@ func CurrentGame(id PlayerID, db memory.Memory) (g game.Game, err error) {
 	return
 }
 
-func (p *Player) CurrentGame(db memory.Memory) (game game.Game, err error) {
-	*p, err = getPlayer(p.ID, db)
-	if err != nil {
-		return
-	}
-	if len(p.GamesID) == 0 {
-		return game, NoCurrentGameError{}
-	}
-	err = db.Get(fmt.Sprintf("game:%d", p.GamesID[len(p.GamesID)-1]), &game)
-	return
-}
-
-
 
 func cmdToPlayersID(db memory.Memory, cmd string) (playersID []PlayerID, err error) {
 	others := make([]string, 3)
