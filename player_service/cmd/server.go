@@ -27,14 +27,14 @@ func (p *MyPlayServer) MakePlayer(ctx context.Context, req *pb.PlayerRequest) (*
 
 func (p *MyPlayServer) NewMessage(ctx context.Context, m *pb.Message) (*pb.Response, error) {
 	r, err := pl.NewMessage(helpers.PlayerID(m.GetPlayer().GetID()), m.GetChatID(), m.GetCommand(), m.GetText(), db)
-	log.Println(r, err)
-	log.Println(r.Keyboard)
+	log.Println("player:", r, err)
+	log.Println("player:", r.Keyboard)
 	// resp := &pb.Response{
 	// 	Text:     r.Text,
 	// 	Keyboard: r.Keyboard,
 	// 	ChatsID:  r.ChatsID,
 	// }
-	log.Println("player response", r)
+	log.Println("player sends response", r)
 	return &r, nil
 }
 
@@ -65,9 +65,9 @@ func main() {
 	}
 
 	log.Print("...")
-	listener, err := net.Listen("tcp", ":8888")
+	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
-		log.Fatalf("can't listen on 8888: %v", err)
+		log.Fatalf("can't listen on 8080: %v", err)
 	}
 	log.Print("started linstening")
 

@@ -14,13 +14,13 @@ type LeaderboardServer struct {
 }
 
 func (l *LeaderboardServer) GetLeaderboard(c context.Context, p *leaderboard.Player) (*leaderboard.List, error) {
-	return &leaderboard.List{S: "leaderboard...\n1.\n2.\n3."}, nil
+	return &leaderboard.List{S: "leaderboard:\n1.\n2.\n3."}, nil
 }
 
 func main() {
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
-		panic(err)
+		log.Fatalf("can not listen on port %v: %v", "8080", err)
 	}
 
 	s := grpc.NewServer()

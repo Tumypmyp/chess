@@ -97,7 +97,7 @@ func Do(update tgbotapi.Update, text string) (r pb.Response, err error) {
 
 
 func NewMessage(id helpers.PlayerID, chatID int64, cmd, text string) (r pb.Response, err error) {
-	conn, err := grpc.Dial("localhost:8888", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial("player:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -121,19 +121,16 @@ func NewMessage(id helpers.PlayerID, chatID int64, cmd, text string) (r pb.Respo
 }
 
 func MakePlayer(id helpers.PlayerID, username string) error {
-
-	log.Println("connecting to 8888")
-	conn, err := grpc.Dial("localhost:8888", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	log.Println("connecting to 8080")
+	conn, err := grpc.Dial("player:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
 	c :=  pb.NewPlayClient(conn)
 
-	log.Println("new client")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
 	defer cancel()
-	log.Println("request")
 	_, err = c.MakePlayer(ctx, & pb.PlayerRequest{Username: username, Player: & pb.PlayerID{ID:int64(id)}})
 
 	log.Println("response ", err)

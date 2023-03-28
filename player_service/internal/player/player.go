@@ -15,6 +15,7 @@ type Player struct {
 	ID       PlayerID
 	GamesID  []int64 `json:"gamesID"`
 	Username string  `json:"username"`
+	Rating   int64
 }
 
 // make new player and store in database

@@ -3,7 +3,8 @@ package memory
 import (
 	"context"
 	"encoding/json"
-
+	"time"
+	
 	"github.com/redis/go-redis/v9"
 	
 )
@@ -25,6 +26,7 @@ func NewDatabase() (Database, error) {
 		Addr:     "redis:6379",
 		Password: "",
 		DB:       0,
+		DialTimeout: time.Second * 10,
 	})}
 	_, err := db.client.Ping(ctx).Result()
 	return db, err

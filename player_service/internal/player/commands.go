@@ -46,6 +46,16 @@ func Cmd(db memory.Memory, cmd, text string, p PlayerID, ChatID int64) (r pb.Res
 	return
 }
 
+
+type DatabaseStoringError struct {
+	err error
+}
+
+func (d DatabaseStoringError) Error() string {
+	return fmt.Sprintf("can not store in database: %v", d.err.Error())
+}
+
+
 // Move player
 func Do(id PlayerID, db memory.Memory, move string, chatID int64) (pb.Response, error) {
 	p, _ := getPlayer(id, db)
@@ -76,14 +86,6 @@ func MakePlayer(id PlayerID, username string, db memory.Memory) (player Player) 
 
 
 
-type DatabaseStoringError struct {
-	err error
-}
-
-func (d DatabaseStoringError) Error() string {
-	return fmt.Sprintf("can not store in database: %v", d.err.Error())
-}
-
 
 type NoConnectionError struct{}
 
@@ -106,5 +108,5 @@ func getLeaderboard(id PlayerID, ChatID int64) (pb.Response, error) {
 		return pb.Response{Text: NoConnectionError{}.Error(), ChatsID: []int64{ChatID}}, NoConnectionError{}
 
 	}
-	return pb.Response{Text: r.GetS()}, nil
+	return pb.Response{Text: r.GetS(), ChatsID: []int64{ChatID}}, nil
 }
