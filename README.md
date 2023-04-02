@@ -1,7 +1,7 @@
 
 # Golang Telegram games bot
 
-With this bot you can play Tic-Tac-Toe with other Telegram users.
+A Telegram bot written in Golang, with which you can play turn-based games with other users. The bot consists of 3 microservices that communicate via gRPC. I use Redis as a database. The bot is running on AWS using docker compose.
 
 
 # Usage
@@ -24,7 +24,7 @@ Goal for this pet-project is to create a chess game in Telegram, explore tools s
 
 # Structure
 
-I am using microservice architecture. Currentlty there are 2 microservices: `bot_service`, `player_service` `leaderboard_service`, which comunicate through gRPC.
+I am using microservice architecture. Currentlty there are 3 microservices: `bot_service`, `player_service` `leaderboard_service`, which comunicate through gRPC.
 
 <p align="middle">
   <img src=files/schema.jpg width="90%" />\
