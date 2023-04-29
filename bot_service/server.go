@@ -20,7 +20,7 @@ func NewBot() (bot *tgbotapi.BotAPI) {
 	if err != nil {
 		panic(err)
 	}
-	bot.Debug = true
+	// bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 	return
 }
@@ -59,6 +59,7 @@ func processUpdate(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	var text string
 	if update.Message != nil {
 		text = update.Message.Text
+		// text = update.Message.CommandArguments()
 	} else if update.CallbackQuery != nil {
 		callback := tgbotapi.NewCallback(update.CallbackQuery.ID, "")
 		if _, err := bot.Request(callback); err != nil {

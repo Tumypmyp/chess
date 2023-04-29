@@ -39,7 +39,7 @@ func AddGameToPlayer(id PlayerID, gameID int64, db memory.Memory) {
 	StorePlayer(p, db)
 }
 
-func (p *Player) AddNewGame(gameID int64) {
+func (p *Player) addNewGame(gameID int64) {
 	p.GamesID = append(p.GamesID, gameID)
 }
 
@@ -60,7 +60,7 @@ type NoCurrentGameError struct{}
 
 func (n NoCurrentGameError) Error() string { return "no current game,\ntry: /newgame" }
 
-
+// returns current game
 func CurrentGame(id PlayerID, db memory.Memory) (g game.Game, err error) {
 	p, err := getPlayer(id, db)
 	if err != nil {

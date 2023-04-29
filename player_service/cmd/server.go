@@ -29,32 +29,9 @@ func (p *MyPlayServer) NewMessage(ctx context.Context, m *pb.Message) (*pb.Respo
 	r, err := pl.NewMessage(helpers.PlayerID(m.GetPlayer().GetID()), m.GetChatID(), m.GetCommand(), m.GetText(), db)
 	log.Println("player:", r, err)
 	log.Println("player:", r.Keyboard)
-	// resp := &pb.Response{
-	// 	Text:     r.Text,
-	// 	Keyboard: r.Keyboard,
-	// 	ChatsID:  r.ChatsID,
-	// }
-	log.Println("player sends response", r)
 	return &r, nil
 }
 
-// func toKeyboard(k [][]helpers.Button) (keyboard []*pb.ArrayButton) {
-// 	if k == nil {
-// 		return []*pb.ArrayButton{}
-// 	}
-// 	keyboard = make([]*pb.ArrayButton, len(k))
-
-// 	log.Println(keyboard)
-// 	for i, v := range k {
-		
-// 		log.Println(v)
-// 		keyboard[i] = &pb.ArrayButton{Buttons: make([]*pb.Button, len(v))}
-// 		for j, b := range v {
-// 			keyboard[i].Buttons[j] = &pb.Button{Text: b.Text, CallbackData: b.CallbackData}
-// 		}
-// 	}
-// 	return 
-// }
 
 func main() {
 	var err error

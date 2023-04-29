@@ -1,0 +1,36 @@
+version: "3.7"
+
+services:
+  server:
+    image: tumypmyp/chess-bot
+    restart: always
+    build: 
+      context: .
+      dockerfile: bot_service/Dockerfile
+    environment:
+      - TELEGRAM_APITOKEN=430263488:AAFnTSyn9dOPSrTpdDlZ8sUHMDaPLRFU_tg
+
+  leaderboard:
+    image: tumypmyp/chess-leaderboard
+    restart: always
+    build:
+      context: .
+      dockerfile: leaderboard_service/Dockerfile
+
+  player:
+    image: tumypmyp/chess-player
+    restart: always
+    build:
+      context: .
+      dockerfile: player_service/Dockerfile
+  
+  redis:
+    image: redis
+    restart: always
+    command: redis-server --save 20 1 
+    volumes: 
+      - cache:/data
+      
+volumes:
+  cache:
+    driver: local
