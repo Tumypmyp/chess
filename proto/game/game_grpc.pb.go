@@ -4,7 +4,7 @@
 // - protoc             v3.6.1
 // source: proto/game/game.proto
 
-package game
+package __
 
 import (
 	context "context"
@@ -38,7 +38,7 @@ func NewGameClient(cc grpc.ClientConnInterface) GameClient {
 
 func (c *gameClient) Move(ctx context.Context, in *MoveRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	out := new(empty.Empty)
-	err := c.cc.Invoke(ctx, "/Game/Move", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/game.Game/Move", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (c *gameClient) Move(ctx context.Context, in *MoveRequest, opts ...grpc.Cal
 
 func (c *gameClient) Status(ctx context.Context, in *GameID, opts ...grpc.CallOption) (*GameStatus, error) {
 	out := new(GameStatus)
-	err := c.cc.Invoke(ctx, "/Game/Status", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/game.Game/Status", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (c *gameClient) Status(ctx context.Context, in *GameID, opts ...grpc.CallOp
 
 func (c *gameClient) NewGame(ctx context.Context, in *NewGameRequest, opts ...grpc.CallOption) (*GameID, error) {
 	out := new(GameID)
-	err := c.cc.Invoke(ctx, "/Game/NewGame", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/game.Game/NewGame", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func _Game_Move_Handler(srv interface{}, ctx context.Context, dec func(interface
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Game/Move",
+		FullMethod: "/game.Game/Move",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GameServer).Move(ctx, req.(*MoveRequest))
@@ -127,7 +127,7 @@ func _Game_Status_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Game/Status",
+		FullMethod: "/game.Game/Status",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GameServer).Status(ctx, req.(*GameID))
@@ -145,7 +145,7 @@ func _Game_NewGame_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Game/NewGame",
+		FullMethod: "/game.Game/NewGame",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GameServer).NewGame(ctx, req.(*NewGameRequest))
@@ -157,7 +157,7 @@ func _Game_NewGame_Handler(srv interface{}, ctx context.Context, dec func(interf
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Game_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Game",
+	ServiceName: "game.Game",
 	HandlerType: (*GameServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

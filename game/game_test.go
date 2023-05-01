@@ -13,13 +13,13 @@ import (
 func TestGame(t *testing.T) {
 	t.Run("makeMove", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		player := PlayerID(12)
+		player := int64(12)
 		game := makeGame(db, player)
 		err := game.makeMove(player, "00")
 		AssertNoError(t, err)
 
 		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
-		want := Game{PlayersID: []PlayerID{player},
+		want := Game{PlayersID: []int64{player},
 			Description:   "@ ",
 			CurrentPlayer: 0,
 			Status:        Started,
@@ -32,15 +32,15 @@ func TestGame(t *testing.T) {
 	t.Run("2 players", func(t *testing.T) {
 		mem := memory.NewStubDatabase()
 		db := mem
-		p1 := PlayerID(12)
-		p2 := PlayerID(13)
+		p1 := int64(12)
+		p2 := int64(13)
 		game := makeGame(db, p1, p2)
 
 		err := game.makeMove(p1, "00")
 		AssertNoError(t, err)
 
 		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
-		want := Game{PlayersID: []PlayerID{p1, p2},
+		want := Game{PlayersID: []int64{p1, p2},
 			Description:   "@ @ ",
 			CurrentPlayer: 1,
 			Board:         board,
@@ -64,7 +64,7 @@ func TestGame(t *testing.T) {
 
 	t.Run("game status", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		player := PlayerID(12)
+		player := int64(12)
 		game := makeGame(db, player)
 		AssertStatus(t, game.Status, Started)
 
@@ -80,7 +80,7 @@ func TestGame(t *testing.T) {
 
 	t.Run("add chat", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		player := PlayerID(12)
+		player := int64(12)
 		game := makeGame(db, player)
 		AssertStatus(t, game.Status, Started)
 		game.AddChat(1234)

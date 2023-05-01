@@ -6,7 +6,7 @@ import (
 	"net"
 
 	empty "github.com/golang/protobuf/ptypes/empty"
-	"github.com/tumypmyp/chess/helpers"
+	
 	"github.com/tumypmyp/chess/player_service/pkg/memory"
 	pb "github.com/tumypmyp/chess/proto/player"
 	pl "github.com/tumypmyp/chess/player_service/internal/player"
@@ -20,13 +20,13 @@ type MyPlayServer struct {
 }
 
 func (p *MyPlayServer) MakePlayer(ctx context.Context, req *pb.PlayerRequest) (*empty.Empty, error) {
-	pl.MakePlayer(helpers.PlayerID(req.GetPlayer().GetID()), req.GetUsername(), db)
+	pl.MakePlayer(req.GetPlayer().GetID(), req.GetUsername(), db)
 	log.Println("making server in player")
 	return &empty.Empty{}, nil
 }
 
 func (p *MyPlayServer) NewMessage(ctx context.Context, m *pb.Message) (*pb.Response, error) {
-	r, err := pl.NewMessage(helpers.PlayerID(m.GetPlayer().GetID()), m.GetChatID(), m.GetCommand(), m.GetText(), db)
+	r, err := pl.NewMessage(m.GetPlayer().GetID(), m.GetChatID(), m.GetCommand(), m.GetText(), db)
 	log.Println("player:", r, err)
 	log.Println("player:", r.Keyboard)
 	return &r, nil

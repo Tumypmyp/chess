@@ -29,13 +29,13 @@ func TestGameMemory(t *testing.T) {
 func TestGameMove(t *testing.T) {
 	t.Run("new game", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		playerID := PlayerID(12)
+		playerID := int64(12)
 		gameID := NewGame(db, playerID)
 		err := Move(db, gameID, playerID, "00")
 		AssertNoError(t, err)
 
 		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
-		want := Game{PlayersID: []PlayerID{playerID},
+		want := Game{PlayersID: []int64{playerID},
 			Description:   "@ ",
 			CurrentPlayer: 0,
 			Status:        Started,
@@ -49,7 +49,7 @@ func TestGameMove(t *testing.T) {
 
 	t.Run("make status", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		playerID := PlayerID(12)
+		playerID := int64(12)
 		gameID := NewGame(db, playerID)
 		err := Move(db, gameID, playerID, "00")
 		AssertNoError(t, err)

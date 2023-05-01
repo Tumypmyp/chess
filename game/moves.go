@@ -3,13 +3,11 @@ package game
 import (
 	"fmt"
 
-	. "github.com/tumypmyp/chess/helpers"
-
 	"github.com/tumypmyp/chess/player_service/pkg/memory"
 	pb "github.com/tumypmyp/chess/proto/game"
 )
 
-func NewGame(db memory.Memory, playersID ...PlayerID) int64 {
+func NewGame(db memory.Memory, playersID ...int64) int64 {
 	return makeGame(db, playersID...).ID	
 }
 
@@ -38,7 +36,7 @@ func setGame(g Game, m memory.Memory) error {
 }
 
 // make move in game for player
-func Move(m memory.Memory, gameID int64, playerID PlayerID, move string) (err error) {
+func Move(m memory.Memory, gameID int64, playerID int64, move string) (err error) {
 	g, err := getGame(gameID, m)
 	if err != nil {
 		return err

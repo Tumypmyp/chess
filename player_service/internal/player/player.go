@@ -4,22 +4,19 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/tumypmyp/chess/player_service/internal/game"
-	. "github.com/tumypmyp/chess/helpers"
-	
 	"github.com/tumypmyp/chess/player_service/pkg/memory"
 	pb "github.com/tumypmyp/chess/proto/player"
 )
 
 type Player struct {
-	ID       PlayerID
+	ID       int64
 	GamesID  []int64 `json:"gamesID"`
 	Username string  `json:"username"`
 	Rating   int64
 }
 
 // make new player and store in database
-func NewPlayer(db memory.Memory, ID PlayerID, Username string) Player {
+func NewPlayer(db memory.Memory, ID int64, Username string) Player {
 	p := Player{
 		ID:       ID,
 		Username: Username,
@@ -30,7 +27,7 @@ func NewPlayer(db memory.Memory, ID PlayerID, Username string) Player {
 }
 
 // add new game to a player by id
-func AddGameToPlayer(id PlayerID, gameID int64, db memory.Memory) {
+func AddGameToPlayer(id int64, gameID int64, db memory.Memory) {
 	p, err := getPlayer(id, db)
 	if err != nil {
 		log.Println("no such player", id)
@@ -46,12 +43,13 @@ func (p *Player) addNewGame(gameID int64) {
 
 
 // make new game
-func NewGame(db memory.Memory, players ...PlayerID) pb.Response {
-	g := game.NewGame(db, players...)
+func NewGame(db memory.Memory, players ...int64) pb.Response {
+	gameID := makeNewGame(players...)
 	for _, id := range players {
-		AddGameToPlayer(id, g.ID, db)
+		AddGameToPlayer(id, gameID, db)
 	}
-	return game.SendStatus(g)
+	status := makeStatus(gameID)
+	return pb.Response{Text: status.Description, ChatsID: players}
 }
 
 
@@ -61,21 +59,20 @@ type NoCurrentGameError struct{}
 func (n NoCurrentGameError) Error() string { return "no current game,\ntry: /newgame" }
 
 // returns current game
-func CurrentGame(id PlayerID, db memory.Memory) (g game.Game, err error) {
+func CurrentGame(id int64, db memory.Memory) (gameID int64, err error) {
 	p, err := getPlayer(id, db)
 	if err != nil {
-		return g, err
+		return
 	}
 	if len(p.GamesID) == 0 {
-		return g, NoCurrentGameError{}
+		return gameID, NoCurrentGameError{}
 	}
-	gameID := p.GamesID[len(p.GamesID)-1]
-	g, err = game.GetGame(gameID, db)
-	return
+	gameID = p.GamesID[len(p.GamesID)-1]
+	return gameID, nil
 }
 
 
-func cmdToPlayersID(db memory.Memory, cmd string) (playersID []PlayerID, err error) {
+func cmdToPlayersID(db memory.Memory, cmd string) (playersID []int64, err error) {
 	others := make([]string, 3)
 	n, _ := fmt.Sscanf(cmd, "/newgame @%v @%v @%v", &others[0], &others[1], &others[2])
 	others = others[:n]
@@ -87,20 +84,20 @@ func cmdToPlayersID(db memory.Memory, cmd string) (playersID []PlayerID, err err
 			return playersID, NoUsernameInDatabaseError{}
 		}
 
-		id := PlayerID(clientID)
+		id := int64(clientID)
 		playersID = append(playersID, id)
 	}
 
 	return playersID, nil
 }
 
-func doNewGame(db memory.Memory, id PlayerID, cmd string) (pb.Response, error) {
+func doNewGame(db memory.Memory, id int64, cmd string) (pb.Response, error) {
 	p, err := getPlayer(id, db)
 	if err != nil {
 		return pb.Response{Text: err.Error()}, err
 	}
 	players, err := cmdToPlayersID(db, cmd)
-	players = append([]PlayerID{p.ID}, players...)
+	players = append([]int64{p.ID}, players...)
 	return NewGame(db, players...), err
 }
 

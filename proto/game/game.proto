@@ -2,7 +2,10 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
-option go_package = "./game";
+
+package game;
+
+option go_package = "./";
 
 service Game {
 	rpc Move(MoveRequest) returns (google.protobuf.Empty);
@@ -10,20 +13,17 @@ service Game {
 	rpc NewGame(NewGameRequest) returns (GameID);
 }
 
-
-message PlayerID {
-    int64 ID = 1;
-}
 message GameID {
 	int64 ID = 1;
 }
+
 message MoveRequest {
-	GameID game = 1;
-	PlayerID player = 2;
+	int64 gameID = 1;
+	int64 playerID = 2;
 	string text = 3;
 }
 message NewGameRequest{
-	repeated PlayerID players = 1;
+	repeated int64 playersID = 1;
 }
 
 message GameStatus {	

@@ -4,10 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
-
-	. "github.com/tumypmyp/chess/helpers"
 	
-	g "github.com/tumypmyp/chess/player_service/internal/game"
 	"github.com/tumypmyp/chess/proto/leaderboard"
 	pb "github.com/tumypmyp/chess/proto/player"
 	"github.com/tumypmyp/chess/player_service/pkg/memory"
@@ -21,7 +18,7 @@ type NoSuchCommandError struct {
 
 func (n NoSuchCommandError) Error() string { return fmt.Sprintf("no such command: %v", n.cmd) }
 
-func NewMessage(p PlayerID, chatID int64, cmd, text string, db memory.Memory) (r pb.Response, err error) {
+func NewMessage(p int64, chatID int64, cmd, text string, db memory.Memory) (r pb.Response, err error) {
 	if cmd != "" {
 		return Cmd(db, cmd, text, p, chatID)
 	}
@@ -29,7 +26,7 @@ func NewMessage(p PlayerID, chatID int64, cmd, text string, db memory.Memory) (r
 }
 
 // runs a command by player
-func Cmd(db memory.Memory, cmd, text string, p PlayerID, ChatID int64) (r pb.Response, err error) {
+func Cmd(db memory.Memory, cmd, text string, p int64, ChatID int64) (r pb.Response, err error) {
 	newgame := "newgame"
 	leaderboard := "leaderboard"
 
@@ -57,26 +54,27 @@ func (d DatabaseStoringError) Error() string {
 
 
 // Move player
-func Do(id PlayerID, db memory.Memory, move string, chatID int64) (pb.Response, error) {
+func Do(id int64, db memory.Memory, move string, chatID int64) (pb.Response, error) {
 	// p, _ := getPlayer(id, db)
 	game, err := CurrentGame(id, db)
 	if err != nil {
 		return pb.Response{Text: err.Error(), ChatsID: []int64{chatID}}, err
 	}
-	if err = game.Move(id, move); err != nil {
+	if err = Move(game, id, move); err != nil {
 		return pb.Response{Text: err.Error(), ChatsID: []int64{chatID}}, err
 	}
-	if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
-		e := DatabaseStoringError{err}
-		return pb.Response{Text: e.Error(), ChatsID: []int64{chatID}}, e
-	}
-	return g.SendStatus(game), nil
+	// if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
+	// 	e := DatabaseStoringError{err}
+	// 	return pb.Response{Text: e.Error(), ChatsID: []int64{chatID}}, e
+	// }
+	status := makeStatus(game)
+	return pb.Response{Text: status.Description, ChatsID: []int64{int64(id)}}, nil
 
 }
 
 
 // get or create new player
-func MakePlayer(id PlayerID, username string, db memory.Memory) (player Player) {
+func MakePlayer(id int64, username string, db memory.Memory) (player Player) {
 	var err error
 	if player, err = getPlayer(id, db); err != nil {
 		player = NewPlayer(db, id, username)
@@ -92,7 +90,7 @@ type NoConnectionError struct{}
 func (n NoConnectionError) Error() string { return "can not connect to leaderboard" }
 
 // get leaderboard with gRPC call
-func getLeaderboard(id PlayerID, ChatID int64) (pb.Response, error) {
+func getLeaderboard(id int64, ChatID int64) (pb.Response, error) {
 	conn, err := grpc.Dial("leaderboard:8080", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return pb.Response{Text: NoConnectionError{}.Error()}, NoConnectionError{}

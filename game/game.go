@@ -4,9 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-
-	. "github.com/tumypmyp/chess/helpers"
-
 	"github.com/tumypmyp/chess/player_service/pkg/memory"
 	
 )
@@ -53,7 +50,7 @@ type Game struct {
 	// string describing a game status, players
 	Description string `json:"description"`
 	// players of a game
-	PlayersID []PlayerID `json:"players"`
+	PlayersID []int64 `json:"players"`
 	// player id in a slice
 	CurrentPlayer int
 	// chats to send messages
@@ -64,7 +61,7 @@ type Game struct {
 	Board [3][3]Mark `json:"board"`
 }
 
-func makeGame(db memory.Memory, playersID ...PlayerID) Game {
+func makeGame(db memory.Memory, playersID ...int64) Game {
 	ID, err := db.Incr("gameID")
 	if err != nil {
 		log.Printf("cant restore id: %v", err)
@@ -86,10 +83,10 @@ func makeGame(db memory.Memory, playersID ...PlayerID) Game {
 
 
 // get player from memory
-func getPlayerUsername(ID PlayerID, m memory.Memory) (string, error) {
+func getPlayerUsername(ID int64, m memory.Memory) (string, error) {
 	key := fmt.Sprintf("user:%d", ID)
 	var p struct {
-		ID       PlayerID
+		ID       int64
 		GamesID  []int64 `json:"gamesID"`
 		Username string  `json:"username"`
 	}
@@ -128,11 +125,11 @@ func checkBoundary(g Game, x, y int) error {
 }
 
 // Makes move by a player
-func (g *Game) makeMove(playerID PlayerID, move string) error {
+func (g *Game) makeMove(int64 int64, move string) error {
 	if g.Status == Finished {
 		return errors.New("the game is finished")
 	}
-	if playerID != g.PlayersID[g.CurrentPlayer] {
+	if int64 != g.PlayersID[g.CurrentPlayer] {
 		return errors.New("not your turn")
 	}
 

@@ -10,11 +10,11 @@ import (
 func TestStorePlayer(t *testing.T) {
 	t.Run("get", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		id := PlayerID(12)
+		id := int64(12)
 		_, err := getPlayer(id, db)
 		AssertExactError(t, err, NoSuchPlayerError{ID: id})
 
-		got := NewPlayer(db, PlayerID(12), "abc")
+		got := NewPlayer(db, int64(12), "abc")
 		want := Player{
 			ID:       12,
 			Username: "abc",
@@ -23,7 +23,7 @@ func TestStorePlayer(t *testing.T) {
 	})
 	t.Run("store/get", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		id := PlayerID(1234)
+		id := int64(1234)
 		p := Player{ID: id}
 
 		_, err := getPlayer(id, db)
@@ -38,7 +38,7 @@ func TestStorePlayer(t *testing.T) {
 	})
 	t.Run("store ID/get", func(t *testing.T) {
 		db := memory.NewStubDatabase()
-		id := PlayerID(1234)
+		id := int64(1234)
 		p := Player{
 			ID:       id,
 			Username: "aba",
@@ -51,6 +51,6 @@ func TestStorePlayer(t *testing.T) {
 
 		got, err := getID("aba", db)
 		AssertNoError(t, err)
-		AssertPlayerID(t, got, id)
+		AssertInt(t, got, id)
 	})
 }

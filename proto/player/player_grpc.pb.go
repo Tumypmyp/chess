@@ -4,7 +4,7 @@
 // - protoc             v3.6.1
 // source: proto/player/player.proto
 
-package player
+package __
 
 import (
 	context "context"
@@ -37,7 +37,7 @@ func NewPlayClient(cc grpc.ClientConnInterface) PlayClient {
 
 func (c *playClient) MakePlayer(ctx context.Context, in *PlayerRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	out := new(empty.Empty)
-	err := c.cc.Invoke(ctx, "/Play/MakePlayer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/player.Play/MakePlayer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (c *playClient) MakePlayer(ctx context.Context, in *PlayerRequest, opts ...
 
 func (c *playClient) NewMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
-	err := c.cc.Invoke(ctx, "/Play/NewMessage", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/player.Play/NewMessage", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func _Play_MakePlayer_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Play/MakePlayer",
+		FullMethod: "/player.Play/MakePlayer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PlayServer).MakePlayer(ctx, req.(*PlayerRequest))
@@ -113,7 +113,7 @@ func _Play_NewMessage_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Play/NewMessage",
+		FullMethod: "/player.Play/NewMessage",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PlayServer).NewMessage(ctx, req.(*Message))
@@ -125,7 +125,7 @@ func _Play_NewMessage_Handler(srv interface{}, ctx context.Context, dec func(int
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Play_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Play",
+	ServiceName: "player.Play",
 	HandlerType: (*PlayServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
