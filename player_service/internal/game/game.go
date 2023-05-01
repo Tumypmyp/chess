@@ -4,10 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+
 	. "github.com/tumypmyp/chess/helpers"
-	
-	pb "github.com/tumypmyp/chess/proto/player"
+
 	"github.com/tumypmyp/chess/player_service/pkg/memory"
+	
 )
 
 type Mark int
@@ -63,7 +64,7 @@ type Game struct {
 	Board [3][3]Mark `json:"board"`
 }
 
-func NewGame(db memory.Memory, playersID ...PlayerID) Game {
+func makeGame(db memory.Memory, playersID ...PlayerID) Game {
 	ID, err := db.Incr("gameID")
 	if err != nil {
 		log.Printf("cant restore id: %v", err)
@@ -79,29 +80,8 @@ func NewGame(db memory.Memory, playersID ...PlayerID) Game {
 		game.Description += fmt.Sprintf("@%s ", name)
 	}
 
-	SetGame(game, db)
+	setGame(game, db)
 	return game
-}
-
-
-
-// sends status to all players
-func SendStatus(g Game) pb.Response {
-	return pb.Response{Text: g.String(), Keyboard: makeGameKeyboard(g), ChatsID: g.ChatsID}
-}
-
-func makeGameKeyboard(g Game) (keyboard []*pb.ArrayButton) {
-	keyboard = make([]*pb.ArrayButton, len(g.Board))
-
-	for i, v := range g.Board {
-		keyboard[i] = &pb.ArrayButton{Buttons: make([]*pb.Button, len(v))}
-		for j, b := range v {
-			keyboard[i].Buttons[j] = &pb.Button{Text: b.String(), CallbackData: fmt.Sprintf("%d%d", i, j)}
-		}
-	}
-	
-	// log.Println(keyboard)
-	return
 }
 
 
@@ -148,7 +128,7 @@ func checkBoundary(g Game, x, y int) error {
 }
 
 // Makes move by a player
-func (g *Game) Move(playerID PlayerID, move string) error {
+func (g *Game) makeMove(playerID PlayerID, move string) error {
 	if g.Status == Finished {
 		return errors.New("the game is finished")
 	}
@@ -192,30 +172,4 @@ func (g *Game) UpdateStatus() {
 		}
 	}
 
-}
-
-
-type NoSuchGameError struct{
-	ID int64
-}
-
-func (n NoSuchGameError) Error() string { return fmt.Sprintf("can not get game with id: %v", n.ID) }
-
-// get game from memory
-func GetGame(ID int64, m memory.Memory) (p Game, err error) {
-	key := fmt.Sprintf("game:%d", ID)
-	if err = m.Get(key, &p); err != nil {
-		return p, NoSuchGameError{ID: ID}
-	}
-	return
-}
-
-
-// Update memory.Memory with new value of gameID->game
-func SetGame(g Game, m memory.Memory) error {
-	key := fmt.Sprintf("game:%d", g.ID)
-	if err := m.Set(key, g); err != nil {
-		return fmt.Errorf("error when storing game %v: %w", g, err)
-	}
-	return nil
 }

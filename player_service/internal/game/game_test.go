@@ -9,30 +9,13 @@ import (
 )
 
 
-func TestGameMemory(t *testing.T) {
-	t.Run("get/set", func(t *testing.T) {
-		db := memory.NewStubDatabase()
-		id := int64(1234)
-		_, err := GetGame(id, db)
-		AssertExactError(t, err, NoSuchGameError{ID: id})
-		
-		game := Game{ID:id}
-		err = SetGame(game, db)
-		AssertNoError(t, err)
-
-		got, err := GetGame(id, db)
-		AssertNoError(t, err)
-		AssertGame(t, got, game)
-	})
-}
-
 
 func TestGame(t *testing.T) {
-	t.Run("move", func(t *testing.T) {
+	t.Run("makeMove", func(t *testing.T) {
 		db := memory.NewStubDatabase()
 		player := PlayerID(12)
-		game := NewGame(db, player)
-		err := game.Move(player, "00")
+		game := makeGame(db, player)
+		err := game.makeMove(player, "00")
 		AssertNoError(t, err)
 
 		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
@@ -51,9 +34,9 @@ func TestGame(t *testing.T) {
 		db := mem
 		p1 := PlayerID(12)
 		p2 := PlayerID(13)
-		game := NewGame(db, p1, p2)
+		game := makeGame(db, p1, p2)
 
-		err := game.Move(p1, "00")
+		err := game.makeMove(p1, "00")
 		AssertNoError(t, err)
 
 		board := [3][3]Mark{{1, 0, 0}, {0, 0, 0}, {0, 0, 0}}
@@ -66,7 +49,7 @@ func TestGame(t *testing.T) {
 			ID:      0}
 		AssertGame(t, game, want)
 
-		err = game.Move(p2, "01")
+		err = game.makeMove(p2, "01")
 		AssertNoError(t, err)
 
 		board = [3][3]Mark{{1, 2, 0}, {0, 0, 0}, {0, 0, 0}}
@@ -82,15 +65,15 @@ func TestGame(t *testing.T) {
 	t.Run("game status", func(t *testing.T) {
 		db := memory.NewStubDatabase()
 		player := PlayerID(12)
-		game := NewGame(db, player)
+		game := makeGame(db, player)
 		AssertStatus(t, game.Status, Started)
 
-		err := game.Move(player, "00")
+		err := game.makeMove(player, "00")
 		AssertNoError(t, err)
 
-		err = game.Move(player, "11")
+		err = game.makeMove(player, "11")
 		AssertNoError(t, err)
-		err = game.Move(player, "22")
+		err = game.makeMove(player, "22")
 		AssertNoError(t, err)
 		AssertStatus(t, game.Status, Finished)
 	})
@@ -98,7 +81,7 @@ func TestGame(t *testing.T) {
 	t.Run("add chat", func(t *testing.T) {
 		db := memory.NewStubDatabase()
 		player := PlayerID(12)
-		game := NewGame(db, player)
+		game := makeGame(db, player)
 		AssertStatus(t, game.Status, Started)
 		game.AddChat(1234)
 		AssertInt(t, int64(len(game.ChatsID)), 2)
