@@ -5,7 +5,7 @@ import "google/protobuf/empty.proto";
 
 package game;
 
-option go_package = "./";
+option go_package = "./game";
 
 service Game {
 	rpc Move(MoveRequest) returns (google.protobuf.Empty);

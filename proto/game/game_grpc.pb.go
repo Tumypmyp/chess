@@ -4,7 +4,7 @@
 // - protoc             v3.6.1
 // source: proto/game/game.proto
 
-package __
+package game
 
 import (
 	context "context"

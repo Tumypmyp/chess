@@ -7,7 +7,7 @@ import (
 )
 
 // Update memory.Memory with new value of int64->player
-func StorePlayer(p Player, m memory.Memory) error {
+func storePlayer(p Player, m memory.Memory) error {
 	key := fmt.Sprintf("user:%d", p.ID)
 	if err := m.Set(key, p); err != nil {
 		return fmt.Errorf("error when storing player %v: %w", p, err)
@@ -16,7 +16,7 @@ func StorePlayer(p Player, m memory.Memory) error {
 }
 
 // update memory with new username->int64
-func StoreID(p Player, m memory.Memory) error {
+func storeID(p Player, m memory.Memory) error {
 	key := fmt.Sprintf("username:%s", p.Username)
 	if err := m.Set(key, p.ID); err != nil {
 		return fmt.Errorf("error when storing player username %v: %w", p.Username, err)

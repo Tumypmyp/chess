@@ -4,7 +4,7 @@
 // - protoc             v3.6.1
 // source: proto/player/player.proto
 
-package __
+package player
 
 import (
 	context "context"

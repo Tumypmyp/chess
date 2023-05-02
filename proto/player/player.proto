@@ -3,7 +3,7 @@ syntax = "proto3";
 import "google/protobuf/empty.proto";
 
 package player;
-option go_package = "./";
+option go_package = "./player";
 
 
 service Play {

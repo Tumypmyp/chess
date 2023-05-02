@@ -14,7 +14,7 @@ func TestStorePlayer(t *testing.T) {
 		_, err := getPlayer(id, db)
 		AssertExactError(t, err, NoSuchPlayerError{ID: id})
 
-		got := NewPlayer(db, int64(12), "abc")
+		got := MakePlayer(db, int64(12), "abc")
 		want := Player{
 			ID:       12,
 			Username: "abc",
@@ -29,7 +29,7 @@ func TestStorePlayer(t *testing.T) {
 		_, err := getPlayer(id, db)
 		AssertExactError(t, err, NoSuchPlayerError{ID: id})
 
-		err = StorePlayer(p, db)
+		err = storePlayer(p, db)
 		AssertNoError(t, err)
 
 		got, err := getPlayer(id, db)
@@ -46,7 +46,7 @@ func TestStorePlayer(t *testing.T) {
 		_, err := getID("aba", db)
 		AssertExactError(t, err, NoUsernameInDatabaseError{})
 
-		err = StoreID(p, db)
+		err = storeID(p, db)
 		AssertNoError(t, err)
 
 		got, err := getID("aba", db)

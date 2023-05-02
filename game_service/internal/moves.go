@@ -49,7 +49,6 @@ func Move(m memory.Memory, gameID int64, playerID int64, move string) (err error
 }
 
 
-
 // make status
 func MakeStatus(m memory.Memory, gameID int64) pb.GameStatus {
 	g, _ := getGame(gameID, m)

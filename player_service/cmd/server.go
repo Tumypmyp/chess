@@ -19,7 +19,12 @@ type MyPlayServer struct {
 	pb.UnimplementedPlayServer
 }
 
-func (p *MyPlayServer) MakePlayer(ctx context.Context, req *pb.PlayerRequest) (*empty.Empty, error) {
+
+Move(context.Context, *MoveRequest) (*empty.Empty, error)
+Status(context.Context, *GameID) (*GameStatus, error)
+NewGame(context.Context, *NewGameRequest) (*GameID, error)
+
+func (p *MyPlayServer) Move(ctx context.Context, req *pb.PlayerRequest) (*empty.Empty, error) {
 	pl.MakePlayer(req.GetPlayer().GetID(), req.GetUsername(), db)
 	log.Println("making server in player")
 	return &empty.Empty{}, nil

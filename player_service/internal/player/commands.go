@@ -33,7 +33,8 @@ func Cmd(db memory.Memory, cmd, text string, p int64, ChatID int64) (r pb.Respon
 	// log.Println(cmd, text)
 	switch cmd {
 	case newgame:
-		r, err = doNewGame(db, p, text)
+		err = doNewGame(db, p, text)
+		r = pb.Response{Text: err.Error(), ChatsID: []int64{ChatID}}
 	case leaderboard:
 		r, err = getLeaderboard(p, ChatID)
 	default:
@@ -42,16 +43,6 @@ func Cmd(db memory.Memory, cmd, text string, p int64, ChatID int64) (r pb.Respon
 	}
 	return
 }
-
-
-type DatabaseStoringError struct {
-	err error
-}
-
-func (d DatabaseStoringError) Error() string {
-	return fmt.Sprintf("can not store in database: %v", d.err.Error())
-}
-
 
 // Move player
 func Do(id int64, db memory.Memory, move string, chatID int64) (pb.Response, error) {
@@ -63,21 +54,19 @@ func Do(id int64, db memory.Memory, move string, chatID int64) (pb.Response, err
 	if err = Move(game, id, move); err != nil {
 		return pb.Response{Text: err.Error(), ChatsID: []int64{chatID}}, err
 	}
-	// if err := db.Set(fmt.Sprintf("game:%d", game.ID), game); err != nil {
-	// 	e := DatabaseStoringError{err}
-	// 	return pb.Response{Text: e.Error(), ChatsID: []int64{chatID}}, e
-	// }
-	status := makeStatus(game)
+	status, _ := makeStatus(game)
 	return pb.Response{Text: status.Description, ChatsID: []int64{int64(id)}}, nil
 
 }
 
 
 // get or create new player
-func MakePlayer(id int64, username string, db memory.Memory) (player Player) {
-	var err error
-	if player, err = getPlayer(id, db); err != nil {
-		player = NewPlayer(db, id, username)
+func MakePlayer(db memory.Memory, playerID int64, username string) (player Player) {
+	player, err := getPlayer(playerID, db)
+	if err != nil {
+		player = NewPlayer(playerID, username)
+		storePlayer(player, db)
+		storeID(player, db)
 	}
 	return
 }
@@ -108,3 +97,78 @@ func getLeaderboard(id int64, ChatID int64) (pb.Response, error) {
 	}
 	return pb.Response{Text: r.GetS(), ChatsID: []int64{ChatID}}, nil
 }
+
+
+
+func doNewGame(db memory.Memory, id int64, cmd string) (err error) {
+	p, err := getPlayer(id, db)
+	if err != nil {
+		return
+	}
+	players, err := cmdToPlayersID(db, cmd)
+	players = append([]int64{p.ID}, players...)
+	gameID, err := makeNewGame(players...)
+	if err != nil {
+		return err
+	}
+	AddGameToPlayers(db, gameID, players...)
+
+	// _, err = makeStatus(gameID)
+	return
+}
+
+
+
+
+func cmdToPlayersID(db memory.Memory, cmd string) (playersID []int64, err error) {
+	others := make([]string, 3)
+	n, _ := fmt.Sscanf(cmd, "/newgame @%v @%v @%v", &others[0], &others[1], &others[2])
+	others = others[:n]
+
+	for _, p2 := range others {
+		var clientID int64
+		key := fmt.Sprintf("username:%v", p2)
+		if err = db.Get(key, &clientID); err != nil {
+			return playersID, NoUsernameInDatabaseError{}
+		}
+
+		id := int64(clientID)
+		playersID = append(playersID, id)
+	}
+
+	return playersID, nil
+}
+
+
+
+
+
+// returns current game
+func CurrentGame(id int64, db memory.Memory) (gameID int64, err error) {
+	p, err := getPlayer(id, db)
+	if err != nil {
+		return
+	}
+	return p.CurrentGame()
+}
+
+// add new game to a player by id
+func AddGameToPlayer(db memory.Memory, gameID int64, playerID int64) error {
+	p, err := getPlayer(playerID, db)
+	if err != nil {
+		return err
+	}
+	p.GamesID = append(p.GamesID, gameID)
+	storePlayer(p, db)
+	return nil
+}
+
+// Add new game
+func AddGameToPlayers(db memory.Memory, gameID int64, playersID ...int64) (err error) {
+	for _, id := range playersID {
+		AddGameToPlayer(db, gameID, id)
+	}
+	return
+}
+
+

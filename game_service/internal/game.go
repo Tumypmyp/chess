@@ -26,6 +26,7 @@ func (m Mark) String() string {
 	return "-"
 }
 
+
 type GameStatus int
 
 const (
@@ -42,6 +43,7 @@ func (g GameStatus) String() string {
 	}
 	return "unknown"
 }
+
 
 // Representation of a play
 type Game struct {
